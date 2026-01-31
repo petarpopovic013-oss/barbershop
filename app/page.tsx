@@ -16,7 +16,7 @@ export default function Home() {
 
   return (
     <>
-    //dawdawdawdawdaw
+
       <Header onBookClick={() => setBookingOpen(true)} />
       <main id="main-content">
         <Hero onBookClick={() => setBookingOpen(true)} />

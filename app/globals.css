@@ -50,7 +50,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .transition-default {
   transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
+} 
 
 /* Modal fade-in */
 .modal-overlay-enter {
@@ -105,3 +105,8 @@ h1, h2, h3, h4, h5, h6 {
 .barbers-in-view .barber-card:nth-child(1) { animation-delay: 0.05s; }
 .barbers-in-view .barber-card:nth-child(2) { animation-delay: 0.15s; }
 .barbers-in-view .barber-card:nth-child(3) { animation-delay: 0.25s; }
+
+/* Barber flip card – smooth 3D rotate */
+.barber-flip-inner {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

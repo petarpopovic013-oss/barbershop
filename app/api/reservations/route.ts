@@ -3,17 +3,111 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
 /**
+ * GET /api/reservations?barberId=1&date=2025-02-03
+ * Or: ?barberId=1&dayStart=2025-02-03T00:00:00.000Z&dayEnd=2025-02-03T23:59:59.999Z
+ * Returns existing reservations for a barber on a given date.
+ * Use dayStart/dayEnd (ISO) for the user's local day; otherwise date is interpreted as UTC day.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const barberIdParam = searchParams.get("barberId");
+    const dateParam = searchParams.get("date");
+    const dayStartParam = searchParams.get("dayStart");
+    const dayEndParam = searchParams.get("dayEnd");
+
+    if (!barberIdParam) {
+      return NextResponse.json(
+        { ok: false, message: "barberId query param is required" },
+        { status: 400 }
+      );
+    }
+
+    const barberId = parseInt(barberIdParam, 10);
+    if (isNaN(barberId) || barberId < 1) {
+      return NextResponse.json(
+        { ok: false, message: "barberId must be a positive integer" },
+        { status: 400 }
+      );
+    }
+
+    let dayStart: string;
+    let dayEnd: string;
+
+    if (dayStartParam && dayEndParam) {
+      dayStart = dayStartParam;
+      dayEnd = dayEndParam;
+      if (Number.isNaN(Date.parse(dayStart)) || Number.isNaN(Date.parse(dayEnd))) {
+        return NextResponse.json(
+          { ok: false, message: "dayStart and dayEnd must be valid ISO datetimes" },
+          { status: 400 }
+        );
+      }
+    } else if (dateParam) {
+      const dateOnly = dateParam.slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        return NextResponse.json(
+          { ok: false, message: "date must be YYYY-MM-DD" },
+          { status: 400 }
+        );
+      }
+      dayStart = `${dateOnly}T00:00:00.000Z`;
+      dayEnd = `${dateOnly}T23:59:59.999Z`;
+    } else {
+      return NextResponse.json(
+        { ok: false, message: "Either date or both dayStart and dayEnd are required" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createSupabaseServerClient();
+    const { data: reservations, error } = await supabase
+      .from("Reservations")
+      .select("start_time, end_time")
+      .eq("barber_id", barberId)
+      .gte("start_time", dayStart)
+      .lte("start_time", dayEnd);
+
+    if (error) {
+      console.error("Error fetching reservations:", error);
+      return NextResponse.json(
+        { ok: false, message: "Failed to fetch reservations", error: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      reservations: reservations ?? [],
+    });
+  } catch (error) {
+    console.error("Error in GET /api/reservations:", error);
+    return NextResponse.json(
+      { ok: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * Validation schema for reservation payload
  * Using existing database schema with bigint IDs
  */
 const reservationSchema = z.object({
-  barberId: z.number().int().positive("Barber ID must be a positive integer"),
-  serviceId: z.number().int().positive("Service ID must be a positive integer"),
-  customerName: z.string().min(1, "Customer name is required"),
-  customerPhone: z.string().min(1, "Customer phone is required"),
-  customerEmail: z.string().email("Valid email is required").optional(),
-  startTime: z.string().datetime("Start time must be a valid ISO datetime"),
-  endTime: z.string().datetime("End time must be a valid ISO datetime"),
+  barberId: z.coerce.number().int().positive("Barber ID must be a positive integer"),
+  serviceId: z.coerce.number().int().positive("Service ID must be a positive integer"),
+  customerName: z.string().trim().min(1, "Customer name is required"),
+  customerPhone: z.string().trim().min(1, "Customer phone is required"),
+  customerEmail: z.union([
+    z.string().email("Valid email is required"),
+    z.literal(""),
+  ]).optional().transform((v) => (v === "" ? undefined : v)),
+  startTime: z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
+    message: "Start time must be a valid ISO datetime",
+  }),
+  endTime: z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
+    message: "End time must be a valid ISO datetime",
+  }),
   notes: z.string().optional(),
 });
 
@@ -46,9 +140,9 @@ export async function POST(request: NextRequest) {
         {
           ok: false,
           message: "Invalid request data",
-          errors: validationResult.error.errors.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
+          errors: validationResult.error.issues.map((issue) => ({
+            field: String(issue.path.join(".")),
+            message: issue.message,
           })),
         },
         { status: 400 }

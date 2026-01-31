@@ -26,7 +26,7 @@ const BARBERS = [
   },
 ];
 
-/** Next 5 weekdays from today (Mon–Fri) */
+/** Next 5 weekdays from today (Mon–Fri). Uses local date for id so API fetches match the displayed day. */
 function getNextFiveWeekdays(): { id: string; label: string; date: Date }[] {
   const days: { id: string; label: string; date: Date }[] = [];
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -36,8 +36,11 @@ function getNextFiveWeekdays(): { id: string; label: string; date: Date }[] {
     d.setDate(d.getDate() + 1);
     const dayOfWeek = d.getDay();
     if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
       days.push({
-        id: d.toISOString().slice(0, 10),
+        id: `${y}-${m}-${day}`,
         label: dayNames[dayOfWeek],
         date: new Date(d),
       });
@@ -113,6 +116,11 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
+
+  // Existing reservations for selected barber + day (to disable taken slots)
+  type ReservationSlot = { start_time: string; end_time: string };
+  const [reservationsForDay, setReservationsForDay] = useState<ReservationSlot[]>([]);
+  const [reservationsLoading, setReservationsLoading] = useState(false);
   
   const weekDays = useMemo(() => getNextFiveWeekdays(), [open]);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -252,15 +260,15 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + selectedService.duration_minutes);
 
+      const email = contactForm.email?.trim();
       const payload = {
-        barberId: selectedBarber.id,
-        serviceId: selectedService.id,
-        customerName: `${contactForm.name} ${contactForm.surname}`,
-        customerPhone: contactForm.mobile,
-        customerEmail: contactForm.email || undefined,
+        barberId: Number(selectedBarber.id),
+        serviceId: Number(selectedService.id),
+        customerName: `${contactForm.name.trim()} ${contactForm.surname.trim()}`.trim(),
+        customerPhone: contactForm.mobile.trim(),
+        ...(email ? { customerEmail: email } : {}),
         startTime: startDateTime.toISOString(),
         endTime: endDateTime.toISOString(),
-        notes: undefined,
       };
 
       const response = await fetch("/api/reservations", {
@@ -272,7 +280,8 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.message || "Failed to create reservation");
+        const detail = data.errors?.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join("; ");
+        throw new Error(detail || data.message || "Failed to create reservation");
       }
 
       setReservationId(data.reservationId);
@@ -299,7 +308,62 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
   const handleDaySelect = (day: DayOption) => {
     setSelectedDay(day);
     setSelectedTime(null);
+    setReservationsForDay([]);
   };
+
+  // Fetch existing reservations when barber + day are selected (use local day range so count matches DB)
+  useEffect(() => {
+    if (!selectedBarber || !selectedDay || !open) {
+      setReservationsForDay([]);
+      return;
+    }
+    const startOfDay = new Date(selectedDay.date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedDay.date);
+    endOfDay.setHours(23, 59, 59, 999);
+    const dayStart = encodeURIComponent(startOfDay.toISOString());
+    const dayEnd = encodeURIComponent(endOfDay.toISOString());
+
+    let cancelled = false;
+    setReservationsLoading(true);
+    fetch(
+      `/api/reservations?barberId=${selectedBarber.id}&dayStart=${dayStart}&dayEnd=${dayEnd}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data.ok) return;
+        setReservationsForDay(data.reservations ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setReservationsForDay([]);
+      })
+      .finally(() => {
+        if (!cancelled) setReservationsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBarber?.id, selectedDay?.id, open]);
+
+  // Check if a time slot is taken (overlaps any existing reservation)
+  const isSlotDisabled = useCallback(
+    (time: string): boolean => {
+      if (!selectedDay || reservationsForDay.length === 0) return false;
+      const [hours, minutes] = time.split(":").map(Number);
+      const slotStart = new Date(selectedDay.date);
+      slotStart.setHours(hours, minutes, 0, 0);
+      const slotEnd = new Date(slotStart);
+      slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+      const slotStartMs = slotStart.getTime();
+      const slotEndMs = slotEnd.getTime();
+      return reservationsForDay.some((r) => {
+        const resStart = new Date(r.start_time).getTime();
+        const resEnd = new Date(r.end_time).getTime();
+        return resStart < slotEndMs && resEnd > slotStartMs;
+      });
+    },
+    [selectedDay, reservationsForDay]
+  );
 
   if (!open) return null;
 
@@ -416,24 +480,33 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                     Pick a time
                   </h3>
                   <p className="mb-3 text-sm text-[var(--foreground-muted)]">
-                    Available slots for {selectedDay.label}, {formatDayDate(selectedDay.date)}
+                    {reservationsLoading
+                      ? "Loading availability..."
+                      : `Available slots for ${selectedDay.label}, ${formatDayDate(selectedDay.date)}`}
                   </p>
                   <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-                    {TIME_SLOTS.map((time) => (
-                      <li key={time} className="min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTime(time)}
-                          className={`flex h-11 w-full min-w-0 items-center justify-center rounded-[var(--radius-btn)] border-2 py-2.5 text-sm font-medium transition-default focus-ring ${
-                            selectedTime === time
-                              ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                              : "border-[var(--border-muted)] text-[var(--foreground)] hover:border-[var(--foreground-muted)]"
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      </li>
-                    ))}
+                    {TIME_SLOTS.map((time) => {
+                      const disabled = isSlotDisabled(time);
+                      return (
+                        <li key={time} className="min-w-0">
+                          <button
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => !disabled && setSelectedTime(time)}
+                            title={disabled ? "This slot is already booked" : undefined}
+                            className={`flex h-11 w-full min-w-0 items-center justify-center rounded-[var(--radius-btn)] border-2 py-2.5 text-sm font-medium transition-default focus-ring ${
+                              disabled
+                                ? "cursor-not-allowed border-[var(--border-muted)] bg-[var(--surface-mid)] text-[var(--foreground-muted)] opacity-60 line-through"
+                                : selectedTime === time
+                                  ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                                  : "border-[var(--border-muted)] text-[var(--foreground)] hover:border-[var(--foreground-muted)]"
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </>
               )}

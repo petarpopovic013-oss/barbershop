@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navLinks = [
@@ -9,6 +10,7 @@ const navLinks = [
   { href: "#prices", label: "Prices" },
   { href: "#visit", label: "Visit" },
   { href: "#gallery", label: "Gallery" },
+  { href: "/admin", label: "Admin" },
 ];
 
 const SECTION_IDS = navLinks.map((l) => l.href.slice(1)); // ["home", "about", ...]
@@ -27,15 +29,21 @@ function getActiveLabel(): string {
 }
 
 export function Header({ onBookClick }: { onBookClick: () => void }) {
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("Home");
+  const isAdmin = pathname === "/admin";
 
   useEffect(() => {
+    if (isAdmin) {
+      setActiveLink("Admin");
+      return;
+    }
     const handleScroll = () => setActiveLink(getActiveLabel());
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // set initial
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isAdmin]);
 
   return (
     <header
@@ -44,7 +52,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <Link
-          href="#home"
+          href={isAdmin ? "/" : "#home"}
           className="font-serif text-xl font-semibold tracking-tight text-white focus-ring rounded transition-default hover:opacity-90"
           onClick={() => setActiveLink("Home")}
         >
@@ -58,9 +66,9 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              href={href}
+              href={label === "Home" && isAdmin ? "/" : href}
               className={
-                activeLink === label
+                activeLink === label || (label === "Admin" && isAdmin)
                   ? "rounded px-3 py-2 text-sm font-medium tracking-wide text-white ring-2 ring-white/80 ring-offset-2 ring-offset-[var(--surface-dark)] transition-default focus-ring"
                   : "rounded px-3 py-2 text-sm font-medium tracking-wide text-white/90 transition-default focus-ring hover:bg-white/10 hover:text-white"
               }
@@ -113,7 +121,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              href={href}
+              href={label === "Home" && isAdmin ? "/" : href}
               className="rounded px-4 py-3 text-white hover:bg-white/10 focus-ring"
               onClick={() => {
                 setMobileMenuOpen(false);
