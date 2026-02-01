@@ -4,6 +4,17 @@
 
 The booking flow now **creates customer records** in the `Customer` table and links them to reservations via the `customer_id` foreign key.
 
+### Ensure Customer table is populated
+
+Add **SUPABASE_SERVICE_ROLE_KEY** to `.env.local` so the server API can insert into `Customer` (and `Reservations`) without RLS blocking:
+
+1. Supabase Dashboard → **Settings** → **API** → copy the **service_role** key (keep it secret).
+2. In your project `.env.local` add:
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+   ```
+3. Restart the dev server. New reservations will then create/find a customer and save to the Customer table.
+
 ## How It Works
 
 ### Step 1: Customer Creation/Lookup

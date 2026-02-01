@@ -204,31 +204,18 @@ export async function POST(request: NextRequest) {
 
       if (customerCreateError) {
         console.error("Error creating customer:", customerCreateError);
-        
-        // Check if it's an RLS policy error
+        // Fallback: still create reservation with customer_id null so the booking isn't lost.
+        // Add SUPABASE_SERVICE_ROLE_KEY in .env.local so Customer inserts succeed (bypasses RLS).
         if (customerCreateError.code === "42501" || customerCreateError.message.includes("policy")) {
-          return NextResponse.json(
-            {
-              ok: false,
-              message: "Database permission denied for Customer table.",
-              hint: "You may need to add a policy like: CREATE POLICY 'Allow public inserts' ON \"Customer\" FOR INSERT WITH CHECK (true);",
-              error: customerCreateError.message,
-            },
-            { status: 403 }
+          console.warn(
+            "Customer insert denied (RLS). Create reservation with customer_id null. " +
+            "Set SUPABASE_SERVICE_ROLE_KEY in .env.local to fix."
           );
         }
-
-        return NextResponse.json(
-          {
-            ok: false,
-            message: "Failed to create customer record",
-            error: customerCreateError.message,
-          },
-          { status: 500 }
-        );
+        // customerId stays null; reservation will be created with customer_id null below
+      } else {
+        customerId = newCustomer.id;
       }
-
-      customerId = newCustomer.id;
     }
 
     // Step 2: Insert reservation with customer_id link
@@ -278,8 +265,11 @@ export async function POST(request: NextRequest) {
       {
         ok: true,
         reservationId: data.id,
-        customerId: customerId,
+        customerId: customerId ?? undefined,
         message: "Reservation created successfully",
+        ...(customerId === null && {
+          warning: "Customer record could not be saved. Add SUPABASE_SERVICE_ROLE_KEY to .env.local so Customer table is populated.",
+        }),
       },
       { status: 201 }
     );
