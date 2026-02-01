@@ -96,7 +96,7 @@ export default async function AdminPage({
 
   return (
     <AdminShell>
-      <main id="main-content" className="min-h-screen bg-[var(--background)]">
+      <main id="main-content" className="min-h-screen bg-[var(--background)] pt-2">
         <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-8 text-center text-[var(--foreground-muted)]">Loading...</div>}>
           <AdminCalendar
             barbers={barbers}

@@ -110,3 +110,56 @@ h1, h2, h3, h4, h5, h6 {
 .barber-flip-inner {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Admin dashboard – modern UI */
+.admin-dashboard .admin-btn-secondary:focus-visible,
+.admin-dashboard .admin-select:focus,
+.admin-date-picker button:focus-visible,
+.admin-reservation-block:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.admin-schedule-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.admin-reservation-block {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.admin-empty-state {
+  animation: admin-fade-in 0.3s ease-out;
+}
+
+.admin-modal-overlay {
+  animation: admin-fade-in 0.2s ease-out;
+}
+
+.admin-modal-content {
+  animation: admin-modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.admin-alert {
+  animation: admin-fade-in 0.3s ease-out;
+}

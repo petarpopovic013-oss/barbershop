@@ -1,20 +1,26 @@
-const hairPrices = [
-  { name: "Classic cut", price: "€35" },
-  { name: "Fade", price: "€40" },
-  { name: "Buzz cut", price: "€25" },
-  { name: "Styling", price: "€20" },
-  { name: "Kids cut", price: "€22" },
+import { Fragment } from "react";
+
+const sisanjePrices = [
+  { name: "Šišanje Mašinica", price: "1100din" },
+  { name: "Šišanje Mašinica + Makaze", price: "1200din" },
+  { name: "Šišanje Nula", price: "500din" },
 ];
 
-const beardPrices = [
-  { name: "Beard trim", price: "€18" },
-  { name: "Hot towel shave", price: "€35" },
-  { name: "Shape up", price: "€15" },
+const brijanjePrices = [{ name: "Shaver", price: "200din" }];
+
+const bradaPrices = [
+  { name: "Brada Kratka", price: "400din" },
+  { name: "Brada Duga", price: "500din" },
+  { name: "Brada Nula", price: "200din" },
 ];
 
-const otherPrices = [
-  { name: "Hair + beard combo", price: "€55" },
-  { name: "Consultation", price: "€10" },
+const ostaloPrices = [{ name: "Pranje Kose", price: "250din" }];
+
+const priceCategories: { title: string; items: { name: string; price: string }[] }[] = [
+  { title: "Šišanje", items: sisanjePrices },
+  { title: "Brijanje", items: brijanjePrices },
+  { title: "Brada", items: bradaPrices },
+  { title: "Ostalo", items: ostaloPrices },
 ];
 
 export function Prices({ onBookClick }: { onBookClick?: () => void }) {
@@ -50,62 +56,28 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td
-                  colSpan={2}
-                  className="bg-[var(--surface-dark)] px-6 py-3 font-serif text-sm font-semibold uppercase tracking-wide text-white"
-                >
-                  Hair
-                </td>
-              </tr>
-              {hairPrices.map(({ name, price }) => (
-                <tr
-                  key={name}
-                  className="border-b border-[var(--border-subtle)] transition-default hover:bg-[var(--surface-mid)]/60"
-                >
-                  <td className="px-6 py-4 text-base text-[var(--foreground)]">{name}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-[var(--accent)]">
-                    {price}
-                  </td>
-                </tr>
-              ))}
-              <tr>
-                <td
-                  colSpan={2}
-                  className="bg-[var(--surface-dark)] px-6 py-3 font-serif text-sm font-semibold uppercase tracking-wide text-white"
-                >
-                  Beard
-                </td>
-              </tr>
-              {beardPrices.map(({ name, price }) => (
-                <tr
-                  key={name}
-                  className="border-b border-[var(--border-subtle)] transition-default hover:bg-[var(--surface-mid)]/60"
-                >
-                  <td className="px-6 py-4 text-base text-[var(--foreground)]">{name}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-[var(--accent)]">
-                    {price}
-                  </td>
-                </tr>
-              ))}
-              <tr>
-                <td
-                  colSpan={2}
-                  className="bg-[var(--surface-dark)] px-6 py-3 font-serif text-sm font-semibold uppercase tracking-wide text-white"
-                >
-                  Other
-                </td>
-              </tr>
-              {otherPrices.map(({ name, price }) => (
-                <tr
-                  key={name}
-                  className="border-b border-[var(--border-subtle)] last:border-b-0 transition-default hover:bg-[var(--surface-mid)]/60"
-                >
-                  <td className="px-6 py-4 text-base text-[var(--foreground)]">{name}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-[var(--accent)]">
-                    {price}
-                  </td>
-                </tr>
+              {priceCategories.map(({ title, items }) => (
+                <Fragment key={title}>
+                  <tr>
+                    <td
+                      colSpan={2}
+                      className="bg-[var(--surface-dark)] px-6 py-3 font-serif text-sm font-semibold uppercase tracking-wide text-white"
+                    >
+                      {title}
+                    </td>
+                  </tr>
+                  {items.map(({ name, price }) => (
+                    <tr
+                      key={name}
+                      className="border-b border-[var(--border-subtle)] transition-default hover:bg-[var(--surface-mid)]/60 last:border-b-0"
+                    >
+                      <td className="px-6 py-4 text-base text-[var(--foreground)]">{name}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-[var(--accent)]">
+                        {price}
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>

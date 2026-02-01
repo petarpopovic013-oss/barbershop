@@ -2,6 +2,7 @@
 
 import { useState, Fragment } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AdminDatePicker } from "@/components/AdminDatePicker";
 
 const HOUR_START = 9;
 const HOUR_END = 20;
@@ -44,7 +45,7 @@ function timeSlots(): string[] {
 }
 
 function pixelPerMinute(): number {
-  return 2;
+  return 2.2;
 }
 
 export function AdminCalendar({
@@ -98,7 +99,6 @@ export function AdminCalendar({
   };
 
   const serviceMap = Object.fromEntries(services.map((s) => [s.id, s]));
-  const barberMap = Object.fromEntries(barbers.map((b) => [b.id, b]));
 
   const displayBarbers =
     barberFilter === "all" || !barberFilter
@@ -107,17 +107,17 @@ export function AdminCalendar({
   const columns = displayBarbers.length || 1;
   const slots = timeSlots();
   const dayStartMinutes = HOUR_START * 60;
-  const totalMinutes = (HOUR_END - HOUR_START) * 60;
   const pxPerMin = pixelPerMinute();
 
   const getBlockStyle = (r: Reservation) => {
     const startDate = new Date(r.start_time);
     const endDate = new Date(r.end_time);
-    const startM = startDate.getHours() * 60 + startDate.getMinutes() - dayStartMinutes;
+    const startM =
+      startDate.getHours() * 60 + startDate.getMinutes() - dayStartMinutes;
     const durationM = (endDate.getTime() - startDate.getTime()) / 60000;
     return {
       top: `${startM * pxPerMin}px`,
-      height: `${Math.max(durationM * pxPerMin, 24)}px`,
+      height: `${Math.max(durationM * pxPerMin, 28)}px`,
     };
   };
 
@@ -127,261 +127,370 @@ export function AdminCalendar({
     router.refresh();
   };
 
+  const datesWithReservations = new Set(
+    reservations.length > 0 ? [dateStr] : []
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
-          Admin
-        </h1>
+    <div className="admin-dashboard mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      {/* Header */}
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
+            Admin Dashboard
+          </h1>
+          <p className="mt-0.5 text-sm text-[var(--foreground-muted)]">
+            Manage reservations and schedule
+          </p>
+        </div>
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-[var(--radius-btn)] border border-[var(--border-muted)] px-3 py-2 text-sm text-[var(--foreground-muted)] transition-default hover:border-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+          className="admin-btn-secondary flex items-center gap-2 rounded-xl border border-[var(--border-muted)] px-4 py-2.5 text-sm font-medium text-[var(--foreground-muted)] transition-all hover:border-[var(--foreground-muted)]/50 hover:bg-white/5 hover:text-[var(--foreground)] focus-ring"
         >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
           Log out
         </button>
-      </div>
+      </header>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-4 rounded-[var(--radius-card)] bg-[var(--surface-elevated)] border border-[var(--border-subtle)] p-4">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={prevDay}
-            className="rounded-[var(--radius-btn)] border border-[var(--border-muted)] bg-transparent px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-default focus-ring hover:border-[var(--accent)] hover:bg-white/5"
-          >
-            Prev day
-          </button>
-          <button
-            type="button"
-            onClick={nextDay}
-            className="rounded-[var(--radius-btn)] border border-[var(--border-muted)] bg-transparent px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-default focus-ring hover:border-[var(--accent)] hover:bg-white/5"
-          >
-            Next day
-          </button>
-        </div>
-        <label className="flex items-center gap-2">
-          <span className="text-sm text-[var(--foreground-muted)]">Date</span>
-          <input
-            type="date"
-            value={dateStr}
-            onChange={(e) => updateParams({ date: e.target.value })}
-            className="rounded-[var(--radius-btn)] border border-[var(--border-muted)] bg-[var(--surface-mid)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-          />
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="text-sm text-[var(--foreground-muted)]">Barber</span>
-          <select
-            value={barberFilter}
-            onChange={(e) => updateParams({ barber: e.target.value })}
-            className="rounded-[var(--radius-btn)] border border-[var(--border-muted)] bg-[var(--surface-mid)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-          >
-            <option value="all">All barbers</option>
-            {barbers.map((b) => (
-              <option key={b.id} value={String(b.id)}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span className="text-sm text-[var(--foreground-muted)]">{dayLabel}</span>
-      </div>
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+        {/* Sidebar – calendar + filters */}
+        <aside className="shrink-0 lg:w-72">
+          <div className="sticky top-6 space-y-4">
+            <AdminDatePicker
+              value={dateStr}
+              onChange={(d) => updateParams({ date: d })}
+              datesWithReservations={datesWithReservations}
+            />
 
-      {fetchError && (
-        <div className="mb-6 rounded-[var(--radius-card)] border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {fetchError}
-        </div>
-      )}
-
-      {/* Calendar grid */}
-      <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-muted)] bg-[var(--surface-elevated)] shadow-[var(--shadow-card)]">
-        <div className="border-b border-[var(--border-muted)] bg-[var(--surface-mid)] px-4 py-3">
-          <h2 className="font-serif text-lg font-semibold text-[var(--foreground)]">
-            Reservations — {dayLabel}
-          </h2>
-        </div>
-        <div className="overflow-x-auto">
-          {reservations.length === 0 && !fetchError ? (
-            <div className="px-6 py-12 text-center text-sm text-[var(--foreground-muted)]">
-              No reservations for this day.
-            </div>
-          ) : (
-          <div
-            className="grid min-w-[600px]"
-            style={{ gridTemplateColumns: `80px repeat(${columns}, minmax(140px, 1fr))` }}
-          >
-            <div className="border-r border-b border-[var(--border-subtle)] p-2" />
-            {displayBarbers.map((b) => (
-              <div
-                key={b.id}
-                className="border-b border-r border-[var(--border-subtle)] px-2 py-3 text-center font-medium text-[var(--foreground)] last:border-r-0"
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-4">
+              <label className="mb-3 block text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                Filter by barber
+              </label>
+              <select
+                value={barberFilter}
+                onChange={(e) => updateParams({ barber: e.target.value })}
+                className="admin-select w-full rounded-lg border border-[var(--border-muted)] bg-[var(--surface-mid)] px-3 py-2.5 text-sm text-[var(--foreground)] transition-colors focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/25"
               >
-                {b.name}
-              </div>
-            ))}
-            {displayBarbers.length === 0 && (
-              <div className="border-b border-r border-[var(--border-subtle)] px-2 py-3 text-center text-sm text-[var(--foreground-muted)]">
-                —
-              </div>
-            )}
-            {slots.map((slot) => (
-              <Fragment key={slot}>
-                <div className="border-r border-b border-[var(--border-subtle)] py-1 pr-2 text-right text-xs text-[var(--foreground-muted)]">
-                  {slot}
-                </div>
-                {displayBarbers.length > 0
-                  ? displayBarbers.map((barber) => {
-                      const colReservations = reservations.filter(
-                        (r) => r.barber_id === barber.id
-                      );
-                      return (
-                        <div
-                          key={`${slot}-${barber.id}`}
-                          className="relative border-b border-r border-[var(--border-subtle)] last:border-r-0"
-                          style={{ minHeight: `${SLOT_MINUTES * pxPerMin}px` }}
-                        >
-                          {colReservations
-                            .filter((r) => {
-                              const start = new Date(r.start_time);
-                              const rs = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
-                              return rs === slot;
-                            })
-                            .map((r) => {
-                              const svc = serviceMap[r.service_id];
-                              return (
-                                <button
-                                  key={r.id}
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedReservation({
-                                      r,
-                                      service: svc,
-                                      barber,
-                                    })
-                                  }
-                                  className="absolute left-1 right-1 rounded border border-[var(--accent)]/50 bg-[var(--accent)]/20 px-2 py-1 text-left text-xs transition-default focus-ring hover:bg-[var(--accent)]/30"
-                                  style={getBlockStyle(r)}
-                                >
-                                  <span className="block truncate font-medium text-[var(--foreground)]">
-                                    {r.customer_name || r.customer_phone || "—"}
-                                  </span>
-                                  <span className="block truncate text-[var(--foreground-muted)]">
-                                    {svc?.service_name ?? "Service"}
-                                  </span>
-                                  <span className="block truncate text-[10px] text-[var(--foreground-muted)]">
-                                    {formatTime(new Date(r.start_time))}–
-                                    {formatTime(new Date(r.end_time))}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                        </div>
-                      );
-                    })
-                  : [
-                      <div
-                        key={`${slot}-empty`}
-                        className="relative border-b border-r border-[var(--border-subtle)]"
-                        style={{ minHeight: `${SLOT_MINUTES * pxPerMin}px` }}
-                      />,
-                    ]}
-              </Fragment>
-            ))}
-          </div>
-          )}
-        </div>
-      </div>
-
-      {/* Statistics placeholder */}
-      <section className="mt-12" aria-labelledby="stats-heading">
-        <h2
-          id="stats-heading"
-          className="mb-6 font-serif text-xl font-semibold tracking-tight text-[var(--foreground)]"
-        >
-          Statistics
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-6 text-center"
-            >
-              <p className="text-sm text-[var(--foreground-muted)]">Coming soon</p>
+                <option value="all">All barbers</option>
+                {barbers.map((b) => (
+                  <option key={b.id} value={String(b.id)}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
-        </div>
-      </section>
+
+            {/* Day quick nav */}
+            <div className="flex items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-2">
+              <button
+                type="button"
+                onClick={prevDay}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-medium text-[var(--foreground-muted)] transition-colors hover:bg-white/5 hover:text-[var(--foreground)] focus-ring"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+                Prev
+              </button>
+              <button
+                type="button"
+                onClick={nextDay}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-medium text-[var(--foreground-muted)] transition-colors hover:bg-white/5 hover:text-[var(--foreground)] focus-ring"
+              >
+                Next
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main – schedule */}
+        <main className="min-w-0 flex-1">
+          {fetchError && (
+            <div className="admin-alert mb-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {fetchError}
+            </div>
+          )}
+
+          <div className="admin-schedule-card overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-card)]">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-subtle)] bg-[var(--surface-mid)] px-5 py-4">
+              <h2 className="font-serif text-lg font-semibold tracking-tight text-[var(--foreground)]">
+                Schedule — {dayLabel}
+              </h2>
+              <span className="rounded-full bg-[var(--surface-beige)] px-3 py-1 text-xs font-medium text-[var(--foreground-muted)]">
+                {reservations.length} appointment
+                {reservations.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              {reservations.length === 0 && !fetchError ? (
+                <div className="admin-empty-state flex flex-col items-center justify-center px-6 py-16 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface-beige)] text-[var(--foreground-muted)]">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-[var(--foreground)]">
+                    No reservations for this day
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                    Select another date or check back later
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="admin-schedule-grid grid min-w-[580px]"
+                  style={{
+                    gridTemplateColumns: `72px repeat(${columns}, minmax(150px, 1fr))`,
+                  }}
+                >
+                  <div className="border-r border-b border-[var(--border-subtle)] bg-[var(--surface-mid)]/50 p-2" />
+                  {displayBarbers.map((b) => (
+                    <div
+                      key={b.id}
+                      className="border-b border-r border-[var(--border-subtle)] bg-[var(--surface-mid)]/50 px-3 py-4 text-center text-sm font-semibold text-[var(--foreground)]"
+                    >
+                      {b.name}
+                    </div>
+                  ))}
+                  {displayBarbers.length === 0 && (
+                    <div className="border-b border-r border-[var(--border-subtle)] px-3 py-4 text-center text-sm text-[var(--foreground-muted)]">
+                      —
+                    </div>
+                  )}
+                  {slots.map((slot) => (
+                    <Fragment key={slot}>
+                      <div className="border-r border-b border-[var(--border-subtle)] py-1.5 pr-2 text-right text-xs font-medium text-[var(--foreground-muted)]">
+                        {slot}
+                      </div>
+                      {displayBarbers.length > 0
+                        ? displayBarbers.map((barber) => {
+                            const colReservations = reservations.filter(
+                              (r) => r.barber_id === barber.id
+                            );
+                            return (
+                              <div
+                                key={`${slot}-${barber.id}`}
+                                className="relative border-b border-r border-[var(--border-subtle)] last:border-r-0"
+                                style={{
+                                  minHeight: `${SLOT_MINUTES * pxPerMin}px`,
+                                }}
+                              >
+                                {colReservations
+                                  .filter((r) => {
+                                    const start = new Date(r.start_time);
+                                    const rs = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
+                                    return rs === slot;
+                                  })
+                                  .map((r) => {
+                                    const svc = serviceMap[r.service_id];
+                                    return (
+                                      <button
+                                        key={r.id}
+                                        type="button"
+                                        onClick={() =>
+                                          setSelectedReservation({
+                                            r,
+                                            service: svc,
+                                            barber,
+                                          })
+                                        }
+                                        className="admin-reservation-block absolute left-1.5 right-1.5 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/15 px-2.5 py-1.5 text-left text-xs transition-all hover:border-[var(--accent)]/60 hover:bg-[var(--accent)]/25 focus-ring"
+                                        style={getBlockStyle(r)}
+                                      >
+                                        <span className="block truncate font-semibold text-[var(--foreground)]">
+                                          {r.customer_name || r.customer_phone || "—"}
+                                        </span>
+                                        <span className="block truncate text-[var(--foreground-muted)]">
+                                          {svc?.service_name ?? "Service"}
+                                        </span>
+                                        <span className="block truncate text-[10px] text-[var(--foreground-muted)]">
+                                          {formatTime(new Date(r.start_time))}–
+                                          {formatTime(new Date(r.end_time))}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                              </div>
+                            );
+                          })
+                        : [
+                            <div
+                              key={`${slot}-empty`}
+                              className="relative border-b border-r border-[var(--border-subtle)]"
+                              style={{
+                                minHeight: `${SLOT_MINUTES * pxPerMin}px`,
+                              }}
+                            />,
+                          ]}
+                    </Fragment>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Statistics */}
+          <section
+            className="mt-10"
+            aria-labelledby="stats-heading"
+          >
+            <h2
+              id="stats-heading"
+              className="mb-4 font-serif text-lg font-semibold tracking-tight text-[var(--foreground)]"
+            >
+              Overview
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5">
+                <p className="text-2xl font-semibold text-[var(--foreground)]">
+                  {reservations.length}
+                </p>
+                <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                  Today&apos;s appointments
+                </p>
+              </div>
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5">
+                <p className="text-2xl font-semibold text-[var(--foreground)]">
+                  {barbers.length}
+                </p>
+                <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                  Active barbers
+                </p>
+              </div>
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5">
+                <p className="text-2xl font-semibold text-[var(--foreground)]">
+                  {services.length}
+                </p>
+                <p className="mt-1 text-sm text-[var(--foreground-muted)]">
+                  Services offered
+                </p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
 
       {/* Reservation details modal */}
       {selectedReservation && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          className="admin-modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setSelectedReservation(null)}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="reservation-dialog-title"
         >
           <div
-            className="w-full max-w-md rounded-[var(--radius-card)] border border-[var(--border-muted)] bg-[var(--surface-elevated)] p-6 shadow-xl"
+            className="admin-modal-content w-full max-w-md rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-serif text-lg font-semibold text-[var(--foreground)]">
-                Reservation details
-              </h3>
+            <div className="mb-5 flex items-start justify-between">
+              <div>
+                <h3
+                  id="reservation-dialog-title"
+                  className="font-serif text-lg font-semibold text-[var(--foreground)]"
+                >
+                  Reservation details
+                </h3>
+                <p className="mt-0.5 text-sm text-[var(--foreground-muted)]">
+                  {formatTime(new Date(selectedReservation.r.start_time))} –{" "}
+                  {formatTime(new Date(selectedReservation.r.end_time))}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setSelectedReservation(null)}
-                className="rounded-full p-1 text-[var(--foreground-muted)] transition-default hover:bg-white/10 hover:text-[var(--foreground)] focus-ring"
+                className="rounded-lg p-2 text-[var(--foreground-muted)] transition-colors hover:bg-white/10 hover:text-[var(--foreground)] focus-ring"
                 aria-label="Close"
               >
-                ×
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <dl className="space-y-2 text-sm">
+            <dl className="space-y-4">
               <div>
-                <dt className="text-[var(--foreground-muted)]">Customer</dt>
-                <dd className="font-medium text-[var(--foreground)]">
+                <dt className="text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                  Customer
+                </dt>
+                <dd className="mt-1 font-medium text-[var(--foreground)]">
                   {selectedReservation.r.customer_name}
                 </dd>
               </div>
               <div>
-                <dt className="text-[var(--foreground-muted)]">Phone</dt>
-                <dd className="text-[var(--foreground)]">
-                  {selectedReservation.r.customer_phone}
+                <dt className="text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                  Phone
+                </dt>
+                <dd className="mt-1 text-[var(--foreground)]">
+                  <a
+                    href={`tel:${selectedReservation.r.customer_phone}`}
+                    className="text-[var(--accent)] hover:underline"
+                  >
+                    {selectedReservation.r.customer_phone}
+                  </a>
                 </dd>
               </div>
               {selectedReservation.r.customer_email && (
                 <div>
-                  <dt className="text-[var(--foreground-muted)]">Email</dt>
-                  <dd className="text-[var(--foreground)]">
-                    {selectedReservation.r.customer_email}
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Email
+                  </dt>
+                  <dd className="mt-1 text-[var(--foreground)]">
+                    <a
+                      href={`mailto:${selectedReservation.r.customer_email}`}
+                      className="text-[var(--accent)] hover:underline"
+                    >
+                      {selectedReservation.r.customer_email}
+                    </a>
                   </dd>
                 </div>
               )}
-              <div>
-                <dt className="text-[var(--foreground-muted)]">Barber</dt>
-                <dd className="text-[var(--foreground)]">
-                  {selectedReservation.barber?.name ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--foreground-muted)]">Service</dt>
-                <dd className="text-[var(--foreground)]">
-                  {selectedReservation.service?.service_name ?? "—"}
-                  {selectedReservation.service && (
-                    <span className="ml-1 text-[var(--foreground-muted)]">
-                      ({selectedReservation.service.duration_minutes} min,{" "}
-                      {selectedReservation.service.price_rsd} RSD)
-                    </span>
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--foreground-muted)]">Time</dt>
-                <dd className="text-[var(--foreground)]">
-                  {formatTime(new Date(selectedReservation.r.start_time))} –
-                  {formatTime(new Date(selectedReservation.r.end_time))}
-                </dd>
+              <div className="flex gap-6">
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Barber
+                  </dt>
+                  <dd className="mt-1 text-[var(--foreground)]">
+                    {selectedReservation.barber?.name ?? "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Service
+                  </dt>
+                  <dd className="mt-1 text-[var(--foreground)]">
+                    {selectedReservation.service?.service_name ?? "—"}
+                    {selectedReservation.service && (
+                      <span className="ml-1 text-[var(--foreground-muted)]">
+                        ({selectedReservation.service.duration_minutes} min ·{" "}
+                        {selectedReservation.service.price_rsd} RSD)
+                      </span>
+                    )}
+                  </dd>
+                </div>
               </div>
             </dl>
           </div>
