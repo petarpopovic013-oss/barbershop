@@ -66,18 +66,16 @@ async function fetchReservations(
   return data ?? [];
 }
 
-export default async function AdminPage({
-  searchParams,
-}: {
+export default async function AdminPage(props: {
   searchParams: Promise<{ date?: string; barber?: string }>;
 }) {
-  const params = await searchParams;
+  const searchParams = await props.searchParams;
   const today = new Date();
   const dateStr =
-    params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)
-      ? params.date
+    searchParams.date && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date)
+      ? searchParams.date
       : today.toISOString().slice(0, 10);
-  const barberFilter = params.barber ?? "all";
+  const barberFilter = searchParams.barber ?? "all";
 
   let barbers: Barber[] = [];
   let services: Service[] = [];
@@ -96,8 +94,8 @@ export default async function AdminPage({
 
   return (
     <AdminShell>
-      <main id="main-content" className="min-h-screen bg-[var(--background)] pt-2">
-        <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-8 text-center text-[var(--foreground-muted)]">Loading...</div>}>
+      <main id="main-content" className="min-h-screen bg-[#0A0A0B] pt-2">
+        <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-8 text-center text-[#A1A1A6]">Loading...</div>}>
           <AdminCalendar
             barbers={barbers}
             services={services}

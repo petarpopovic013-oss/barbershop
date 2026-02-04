@@ -19,52 +19,55 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
   return (
     <footer
       id="contact"
-      className="bg-[var(--surface-dark)] px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+      className="bg-[#0A0A0B] border-t border-[#2A2A2F] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
       role="contentinfo"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          {/* Brand & Contact */}
           <div>
-            <p className="font-serif text-xl font-semibold tracking-tight text-white">
+            <p className="text-2xl font-bold tracking-tight text-[#F5F5F7]">
               Sharp Cut
             </p>
-            <p className="mt-3 text-base text-white/80">
+            <p className="mt-4 text-base text-[#A1A1A6] leading-relaxed">
               Example Street 1<br />
               21000 Novi Sad
             </p>
-            <p className="mt-2 text-sm text-white/80">
-              <a href="tel:+381123456789" className="underline focus-ring rounded">
+            <p className="mt-3 text-base">
+              <a href="tel:+381123456789" className="text-[#A1A1A6] hover:text-[#FFA400] transition-colors focus-ring rounded">
                 +381 12 345 6789
               </a>
             </p>
-            <p className="mt-1 text-sm text-white/80">
-              <a href="mailto:hello@example.com" className="underline focus-ring rounded">
+            <p className="mt-1 text-base">
+              <a href="mailto:hello@example.com" className="text-[#A1A1A6] hover:text-[#FFA400] transition-colors focus-ring rounded">
                 hello@example.com
               </a>
             </p>
-            <div className="mt-4 flex gap-3" aria-label="Social links">
+            <div className="mt-6 flex gap-3" aria-label="Social links">
               {["Facebook", "Instagram", "Twitter"].map((name) => (
                 <a
                   key={name}
                   href="#"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-default focus-ring hover:bg-white/20"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#1A1A1F] border border-[#2A2A2F] text-[#A1A1A6] transition-all focus-ring hover:bg-[#FFA400] hover:text-[#0A0A0B] hover:border-[#FFA400]"
                   aria-label={name}
                 >
-                  <span className="text-xs font-medium">{name[0]}</span>
+                  <span className="text-sm font-medium">{name[0]}</span>
                 </a>
               ))}
             </div>
           </div>
+          
+          {/* Menu */}
           <div>
-            <h3 className="font-serif text-sm font-semibold tracking-tight text-white">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
               Menu
             </h3>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-5 space-y-3">
               {menuLinks.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-base text-white/80 underline-offset-2 hover:underline focus-ring rounded"
+                    className="text-base text-[#A1A1A6] hover:text-[#FFA400] transition-colors focus-ring rounded"
                   >
                     {label}
                   </Link>
@@ -72,16 +75,18 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
               ))}
             </ul>
           </div>
+          
+          {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-sm font-semibold tracking-tight text-white">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
               Quick links
             </h3>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-5 space-y-3">
               {quickLinks.map(({ href, label }) => (
                 <li key={label}>
                   <Link
                     href={href}
-                    className="text-base text-white/80 underline-offset-2 hover:underline focus-ring rounded"
+                    className="text-base text-[#A1A1A6] hover:text-[#FFA400] transition-colors focus-ring rounded"
                   >
                     {label}
                   </Link>
@@ -89,26 +94,32 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
               ))}
             </ul>
           </div>
+          
+          {/* Hours & CTA */}
           <div>
-            <h3 className="font-serif text-sm font-semibold tracking-tight text-white">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
               Hours
             </h3>
-            <p className="mt-4 text-base text-white/80">
+            <p className="mt-5 text-base text-[#A1A1A6] leading-relaxed">
               Mon–Fri 9:00–20:00<br />
               Sat 9:00–16:00
             </p>
             <button
               type="button"
               onClick={onBookClick}
-              className="mt-6 w-full rounded-[var(--radius-btn)] bg-[var(--accent)] py-3.5 px-5 text-base font-semibold text-white transition-default focus-ring hover:bg-[var(--accent-hover)] sm:w-auto sm:px-6"
+              className="mt-8 w-full min-h-[48px] rounded-lg bg-[#FFA400] py-3.5 px-6 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#FFB833] sm:w-auto"
             >
               Book appointment
             </button>
           </div>
         </div>
-        <p className="mt-12 border-t border-white/20 pt-8 text-center text-base text-white/60">
-          © Sharp Cut Novi Sad. All rights reserved.
-        </p>
+        
+        {/* Copyright */}
+        <div className="mt-16 border-t border-[#2A2A2F] pt-8">
+          <p className="text-center text-sm text-[#6B6B70]">
+            © Sharp Cut Novi Sad. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -16,7 +16,7 @@ const barbers = [
     name: "Stefan",
     role: "Senior Barber",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop",
-    bio: "Stefan has been shaping style in the industry for 8 years. His passion is precision scissor work and beard grooming. He’s trained in both traditional and contemporary techniques.",
+    bio: "Stefan has been shaping style in the industry for 8 years. His passion is precision scissor work and beard grooming. He's trained in both traditional and contemporary techniques.",
   },
   {
     id: "barber-3",
@@ -49,28 +49,30 @@ export function Barbers() {
     <section
       ref={sectionRef}
       id="about"
-      className={`bg-[var(--surface-mid)] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 ${inView ? "barbers-in-view" : ""}`}
+      className={`bg-[#0A0A0B] px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32 ${inView ? "barbers-in-view" : ""}`}
       aria-labelledby="barbers-heading"
     >
-      <div className="mx-auto max-w-5xl">
-        <h2
-          id="barbers-heading"
-          className="mb-2 text-center font-serif text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl"
-        >
-          Meet our barbers
-        </h2>
-        <p className="mx-auto mb-8 max-w-lg text-center text-sm leading-relaxed text-[var(--foreground-muted)]">
-          Three experienced barbers who care about detail and your comfort. Click
-          an image to read their bio.
-        </p>
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center mb-14 lg:mb-20">
+          <h2
+            id="barbers-heading"
+            className="mb-4 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
+          >
+            Meet our barbers
+          </h2>
+          <p className="mx-auto max-w-xl text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
+            Three experienced barbers who care about detail and your comfort. Click
+            an image to read their bio.
+          </p>
+        </div>
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {barbers.map(({ id, name, role, image, bio }) => (
             <li
               key={id}
-              className="barber-card barber-flip-card group h-[340px] opacity-0 [perspective:1000px]"
+              className="barber-card barber-flip-card group h-[400px] opacity-0 [perspective:1000px]"
             >
               <div
-                className={`barber-flip-inner focus-ring relative h-full w-full cursor-pointer rounded-[var(--radius-card)] transition-transform duration-500 outline-none [transform-style:preserve-3d] ${flippedId === id ? "[transform:rotateY(180deg)]" : ""}`}
+                className={`barber-flip-inner focus-ring relative h-full w-full cursor-pointer rounded-[14px] transition-transform duration-500 outline-none [transform-style:preserve-3d] ${flippedId === id ? "[transform:rotateY(180deg)]" : ""}`}
                 onClick={() => setFlippedId(flippedId === id ? null : id)}
                 role="button"
                 tabIndex={0}
@@ -83,7 +85,7 @@ export function Barbers() {
                 aria-label={`${flippedId === id ? "Show" : "View"} ${name} bio`}
               >
                 {/* Front */}
-                <div className="barber-flip-front absolute inset-0 overflow-hidden rounded-[var(--radius-card)] bg-[var(--surface-elevated)] border border-[var(--border-subtle)] shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)] [backface-visibility:hidden]">
+                <div className="barber-flip-front absolute inset-0 overflow-hidden rounded-[14px] bg-[#141417] border border-[#2A2A2F] transition-all hover:border-[#3A3A40] [backface-visibility:hidden]">
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <Image
                       src={image}
@@ -92,42 +94,28 @@ export function Barbers() {
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
-                    <span
-                      className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-mid)]/95 text-[var(--foreground-muted)]"
-                      aria-hidden
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        aria-hidden
-                      >
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                      </svg>
-                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#141417] via-transparent to-transparent" />
                   </div>
-                  <div className="p-4">
-                    <p className="font-serif text-sm font-medium tracking-tight text-[var(--foreground)]">
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <p className="text-lg font-semibold tracking-tight text-[#F5F5F7]">
                       {name}
                     </p>
-                    <p className="text-xs text-[var(--foreground-muted)]">
+                    <p className="text-sm text-[#FFA400]">
                       {role}
                     </p>
                   </div>
                 </div>
 
                 {/* Back – bio */}
-                <div className="barber-flip-back absolute inset-0 overflow-hidden rounded-[var(--radius-card)] bg-[var(--surface-elevated)] border border-[var(--border-subtle)] shadow-[var(--shadow-card)] [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                  <div className="flex h-full flex-col justify-center p-6">
-                    <h3 className="mb-1 font-serif text-base font-semibold tracking-tight text-[var(--foreground)]">
+                <div className="barber-flip-back absolute inset-0 overflow-hidden rounded-[14px] bg-[#141417] border border-[#2A2A2F] [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                  <div className="flex h-full flex-col justify-center p-8">
+                    <h3 className="mb-2 text-xl font-bold tracking-tight text-[#F5F5F7]">
                       {name}
                     </h3>
-                    <p className="mb-3 text-xs uppercase tracking-wider text-[var(--accent)]">
+                    <p className="mb-4 text-sm font-medium uppercase tracking-wider text-[#FFA400]">
                       {role}
                     </p>
-                    <p className="text-sm leading-relaxed text-[var(--foreground-muted)]">
+                    <p className="text-base leading-relaxed text-[#A1A1A6]">
                       {bio}
                     </p>
                   </div>

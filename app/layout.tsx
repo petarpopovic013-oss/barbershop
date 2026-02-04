@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import { Lora, Source_Sans_3 } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap",
-});
-
-const sourceSans = Source_Sans_3({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
@@ -25,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${lora.variable} ${sourceSans.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
         {children}
       </body>

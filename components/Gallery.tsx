@@ -19,34 +19,35 @@ export function Gallery() {
   return (
     <section
       id="gallery"
-      className="bg-[var(--surface-mid)] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="bg-[#141417] px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32"
       aria-labelledby="gallery-heading"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left content */}
           <div>
             <h2
               id="gallery-heading"
-              className="mb-4 font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl"
+              className="mb-5 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
             >
               Our work
             </h2>
-            <p className="mb-8 max-w-md text-base leading-relaxed text-[var(--foreground-muted)]">
+            <p className="mb-8 max-w-md text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
               From fades to classic cuts and beard styling—see what we do every day in the chair.
             </p>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-[var(--foreground-muted)]">1 / {galleryImages.length}</span>
+              <span className="text-sm text-[#6B6B70]">1 / {galleryImages.length}</span>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--border-muted)] text-[var(--foreground)] transition-default focus-ring hover:bg-[var(--surface-dark)] hover:border-[var(--surface-dark)] hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#2A2A2F] text-[#A1A1A6] transition-default focus-ring hover:bg-[#FFA400] hover:border-[#FFA400] hover:text-[#0A0A0B]"
                   aria-label="Previous image"
                 >
                   ←
                 </button>
                 <button
                   type="button"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--border-muted)] text-[var(--foreground)] transition-default focus-ring hover:bg-[var(--surface-dark)] hover:border-[var(--surface-dark)] hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#2A2A2F] text-[#A1A1A6] transition-default focus-ring hover:bg-[#FFA400] hover:border-[#FFA400] hover:text-[#0A0A0B]"
                   aria-label="Next image"
                 >
                   →
@@ -54,11 +55,13 @@ export function Gallery() {
               </div>
             </div>
           </div>
+          
+          {/* Image grid */}
           <div className="grid gap-4 sm:grid-cols-3">
             {galleryImages.map(({ src, alt }) => (
               <div
                 key={src}
-                className="relative aspect-[3/4] overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-card)]"
+                className="relative aspect-[3/4] overflow-hidden rounded-[14px] border border-[#2A2A2F]"
               >
                 <Image
                   src={src}

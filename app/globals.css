@@ -1,80 +1,94 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark theme – same accent palette, minimal white */
-  --background: #1a1614;
-  --foreground: #f0ebe6;
-  --foreground-muted: #b8b0a8;
-  --surface-dark: #2c2520;
-  --surface-mid: #252019;
-  --surface-elevated: #2e2822;
-  --surface-beige: #3d3530;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-muted: rgba(255, 255, 255, 0.12);
-  --accent: #e07c3c;
-  --accent-hover: #c96a2f;
-  --radius-card: 1rem;
-  --radius-btn: 0.5rem;
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
-  --shadow-card-hover: 0 8px 28px rgba(0, 0, 0, 0.35);
+  /* Dark Theme Color Palette */
+  --primary: #403D58;        /* Vintage Indigo - surfaces, cards */
+  --accent: #FFA400;         /* Warm Orange - CTAs, highlights */
+  --info: #009FFD;           /* Sky Blue - links, secondary actions */
+  --bg-dark: #0A0A0B;        /* Near black - main background */
+  --bg-card: #141417;        /* Slightly lighter - card backgrounds */
+  --bg-elevated: #1A1A1F;    /* Elevated surfaces */
+  --bg-hover: #222228;       /* Hover states */
+  --text-primary: #F5F5F7;   /* Primary text - almost white */
+  --text-secondary: #A1A1A6; /* Secondary text - muted */
+  --text-muted: #6B6B70;     /* Muted text - captions */
+  --border: #2A2A2F;         /* Subtle borders */
+  --border-light: #3A3A40;   /* Lighter borders for emphasis */
+  
+  /* Design tokens */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-body), system-ui, sans-serif;
-  --font-serif: var(--font-heading), Georgia, serif;
+  --color-background: var(--bg-dark);
+  --color-foreground: var(--text-primary);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-info: var(--info);
+  --font-sans: var(--font-body), system-ui, -apple-system, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body);
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.font-heading {
-  font-family: var(--font-heading);
-}
-
-/* Apply heading font to all headings by default */
+/* Modern sans-serif typography for all headings */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  font-weight: 600;
   letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
+h1 { font-size: 3rem; }
+h2 { font-size: 2.25rem; }
+h3 { font-size: 1.5rem; }
+
+/* Focus ring utility */
 .focus-ring:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
+/* Transition utility */
 .transition-default {
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-} 
+  transition: all 0.2s ease;
+}
 
-/* Modal fade-in */
+/* Modal animations */
 .modal-overlay-enter {
   opacity: 0;
-  transition: opacity 0.2s ease-out;
+  transition: opacity 0.25s ease-out;
 }
 .modal-overlay-enter.modal-overlay-visible {
   opacity: 1;
 }
 .modal-content-enter {
   opacity: 0;
-  transform: scale(0.98) translateY(4px);
-  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  transform: scale(0.96) translateY(8px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .modal-content-enter.modal-content-visible {
   opacity: 1;
   transform: scale(1) translateY(0);
 }
 
-/* Scroll reveal – fast animations */
+/* Scroll reveal animations */
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -85,14 +99,14 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0;
 }
 .scroll-reveal.scroll-reveal-visible {
-  animation: fade-in-up 0.35s ease-out forwards;
+  animation: fade-in-up 0.4s ease-out forwards;
 }
 
-/* Barber cards – animate when segment is in view */
+/* Barber cards animation */
 @keyframes barber-card-in {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.98);
+    transform: translateY(24px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -106,12 +120,11 @@ h1, h2, h3, h4, h5, h6 {
 .barbers-in-view .barber-card:nth-child(2) { animation-delay: 0.15s; }
 .barbers-in-view .barber-card:nth-child(3) { animation-delay: 0.25s; }
 
-/* Barber flip card – smooth 3D rotate */
 .barber-flip-inner {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Admin dashboard – modern UI */
+/* Admin styles */
 .admin-dashboard .admin-btn-secondary:focus-visible,
 .admin-dashboard .admin-select:focus,
 .admin-date-picker button:focus-visible,
@@ -125,7 +138,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .admin-reservation-block {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .admin-empty-state {
@@ -141,12 +154,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes admin-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes admin-modal-in {
@@ -162,4 +171,26 @@ h1, h2, h3, h4, h5, h6 {
 
 .admin-alert {
   animation: admin-fade-in 0.3s ease-out;
+}
+
+/* Selection styling */
+::selection {
+  background: var(--accent);
+  color: var(--bg-dark);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-card);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

@@ -13,11 +13,11 @@ const navLinks = [
   { href: "/admin", label: "Admin" },
 ];
 
-const SECTION_IDS = navLinks.map((l) => l.href.slice(1)); // ["home", "about", ...]
+const SECTION_IDS = navLinks.map((l) => l.href.slice(1));
 const ID_TO_LABEL = Object.fromEntries(navLinks.map((l) => [l.href.slice(1), l.label]));
 
 function getActiveLabel(): string {
-  const offset = 120; // pixels from top (sticky header + buffer)
+  const offset = 120;
   let currentId: string | null = null;
   for (const id of SECTION_IDS) {
     const el = document.getElementById(id);
@@ -32,6 +32,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("Home");
+  const [scrolled, setScrolled] = useState(false);
   const isAdmin = pathname === "/admin";
 
   useEffect(() => {
@@ -39,21 +40,28 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
       setActiveLink("Admin");
       return;
     }
-    const handleScroll = () => setActiveLink(getActiveLabel());
+    const handleScroll = () => {
+      setActiveLink(getActiveLabel());
+      setScrolled(window.scrollY > 20);
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // set initial
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isAdmin]);
 
   return (
     <header
-      className="sticky top-0 z-50 w-full bg-[var(--surface-dark)] px-4 py-4 sm:px-6 lg:px-8"
+      className={`sticky top-0 z-50 w-full px-4 py-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+        scrolled 
+          ? "bg-[#0A0A0B]/95 backdrop-blur-md border-b border-[#2A2A2F]" 
+          : "bg-transparent"
+      }`}
       role="banner"
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <Link
           href={isAdmin ? "/" : "#home"}
-          className="font-serif text-xl font-semibold tracking-tight text-white focus-ring rounded transition-default hover:opacity-90"
+          className="text-xl font-bold tracking-tight text-[#F5F5F7] focus-ring rounded transition-default hover:text-[#FFA400]"
           onClick={() => setActiveLink("Home")}
         >
           Sharp Cut
@@ -67,11 +75,11 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
             <Link
               key={href}
               href={label === "Home" && isAdmin ? "/" : href}
-              className={
+              className={`rounded-lg px-4 py-2.5 text-sm font-medium tracking-wide transition-default focus-ring ${
                 activeLink === label || (label === "Admin" && isAdmin)
-                  ? "rounded px-3 py-2 text-sm font-medium tracking-wide text-white ring-2 ring-white/80 ring-offset-2 ring-offset-[var(--surface-dark)] transition-default focus-ring"
-                  : "rounded px-3 py-2 text-sm font-medium tracking-wide text-white/90 transition-default focus-ring hover:bg-white/10 hover:text-white"
-              }
+                  ? "bg-[#FFA400] text-[#0A0A0B]"
+                  : "text-[#A1A1A6] hover:text-[#F5F5F7] hover:bg-[#1A1A1F]"
+              }`}
               onClick={() => setActiveLink(label)}
             >
               {label}
@@ -83,46 +91,46 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           <button
             type="button"
             onClick={onBookClick}
-            className="hidden rounded-[var(--radius-btn)] border border-white/30 bg-transparent px-4 py-2.5 text-sm font-semibold tracking-wide text-white transition-default focus-ring hover:border-[var(--accent)] hover:bg-white/10 active:scale-[0.98] md:block"
+            className="hidden md:block min-h-[44px] rounded-lg bg-[#FFA400] px-6 py-2.5 text-sm font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#FFB833] active:scale-[0.98]"
           >
-            Book
+            Book Now
           </button>
 
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-[var(--radius-btn)] text-white focus-ring md:hidden"
+            className="flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-lg text-[#F5F5F7] focus-ring md:hidden hover:bg-[#1A1A1F]"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle menu"
           >
-            <span
-              className={`h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "translate-y-2 rotate-45" : ""}`}
-            />
-            <span
-              className={`h-0.5 w-5 bg-current transition-opacity ${mobileMenuOpen ? "opacity-0" : ""}`}
-            />
-            <span
-              className={`h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""}`}
-            />
+            <span className={`h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`h-0.5 w-5 bg-current transition-opacity ${mobileMenuOpen ? "opacity-0" : ""}`} />
+            <span className={`h-0.5 w-5 bg-current transition-transform ${mobileMenuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
           </button>
         </div>
       </div>
 
       <div
         id="mobile-menu"
-        className={`md:hidden overflow-hidden transition-all duration-200 ${mobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"}`}
+        className={`md:hidden overflow-hidden transition-all duration-300 ${
+          mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
         aria-hidden={!mobileMenuOpen}
       >
         <nav
-          className="flex flex-col gap-1 border-t border-white/20 py-4"
+          className="flex flex-col gap-1 border-t border-[#2A2A2F] py-4 mt-4"
           aria-label="Mobile navigation"
         >
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={label === "Home" && isAdmin ? "/" : href}
-              className="rounded px-4 py-3 text-white hover:bg-white/10 focus-ring"
+              className={`rounded-lg px-4 py-3 text-base font-medium focus-ring transition-default ${
+                activeLink === label
+                  ? "bg-[#1A1A1F] text-[#FFA400]"
+                  : "text-[#A1A1A6] hover:bg-[#1A1A1F] hover:text-[#F5F5F7]"
+              }`}
               onClick={() => {
                 setMobileMenuOpen(false);
                 setActiveLink(label);
@@ -137,9 +145,9 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
               setMobileMenuOpen(false);
               onBookClick();
             }}
-            className="mx-4 mt-2 rounded-[var(--radius-btn)] bg-[var(--accent)] px-5 py-3.5 text-sm font-semibold tracking-wide text-white transition-default focus-ring hover:bg-[var(--accent-hover)]"
+            className="mx-4 mt-3 min-h-[48px] rounded-lg bg-[#FFA400] px-6 py-3.5 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#FFB833]"
           >
-            Book
+            Book Now
           </button>
         </nav>
       </div>
