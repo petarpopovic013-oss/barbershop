@@ -15,8 +15,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Barbershop Novi Sad | Book Your Cut",
-  description: "Premium barbershop in Novi Sad. Book your appointment online. Classic cuts, beard trims, and grooming for the modern man.",
+  title: "RSBARBERSHOP Novi Sad | Zakažite Svoj Termin",
+  description: "Premijum berbershop u Novom Sadu. Zakažite svoj termin online. Klasični rezovi, oblikovanje brade i profesionalna nega za modernog muškarca.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="sr" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
         {children}
       </body>

@@ -33,7 +33,9 @@
   --font-sans: var(--font-body), system-ui, -apple-system, sans-serif;
   --font-display: var(--font-display), Georgia, serif;
 }
-
+html {
+  scroll-behavior: smooth;
+}
 body {
   background: var(--bg-dark);
   color: var(--text-primary);
@@ -42,6 +44,7 @@ body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
 }
 
 /* Modern sans-serif typography for all headings */

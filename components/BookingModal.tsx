@@ -6,33 +6,36 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const BARBERS = [
   {
     id: 1,
-    name: "Marko",
-    role: "Master Barber",
+    name: "Ratko",
+    role: "Majstor Berber",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop",
   },
   {
     id: 2,
     name: "Stefan",
-    role: "Senior Barber",
+    role: "Viši Berber",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop",
   },
   {
     id: 3,
     name: "Nikola",
-    role: "Barber",
+    role: "Berber",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=500&fit=crop",
   },
 ];
 
-function getNextFiveWeekdays(): { id: string; label: string; date: Date }[] {
-  const days: { id: string; label: string; date: Date }[] = [];
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+// Generate today + next 5 working days (Mon-Sat, skip Sunday) = 6 days total
+function getTodayPlusNextFiveWorkingDays(): { id: string; label: string; date: Date; isToday: boolean }[] {
+  const days: { id: string; label: string; date: Date; isToday: boolean }[] = [];
+  const dayNames = ["Nedelja", "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"];
   let d = new Date();
   let count = 0;
-  while (count < 5) {
-    d.setDate(d.getDate() + 1);
+  let isFirstDay = true;
+  
+  while (count < 6) {
     const dayOfWeek = d.getDay();
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    // Include Mon-Sat (1-6), exclude Sunday (0)
+    if (dayOfWeek >= 1 && dayOfWeek <= 6) {
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
@@ -40,21 +43,41 @@ function getNextFiveWeekdays(): { id: string; label: string; date: Date }[] {
         id: `${y}-${m}-${day}`,
         label: dayNames[dayOfWeek],
         date: new Date(d),
+        isToday: isFirstDay,
       });
       count++;
+      isFirstDay = false;
     }
+    d.setDate(d.getDate() + 1);
   }
   return days;
+}
+
+// Generate time slots between start and end time (30-min intervals)
+function generateTimeSlots(startTime: string, endTime: string): string[] {
+  const slots: string[] = [];
+  const [startHour, startMin] = startTime.split(":").map(Number);
+  const [endHour, endMin] = endTime.split(":").map(Number);
+  
+  let currentHour = startHour;
+  let currentMin = startMin;
+  const endTotalMin = endHour * 60 + endMin;
+  
+  while (currentHour * 60 + currentMin < endTotalMin) {
+    slots.push(`${String(currentHour).padStart(2, "0")}:${String(currentMin).padStart(2, "0")}`);
+    currentMin += 30;
+    if (currentMin >= 60) {
+      currentMin = 0;
+      currentHour++;
+    }
+  }
+  
+  return slots;
 }
 
 function formatDayDate(d: Date): string {
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
-
-const TIME_SLOTS = [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
-  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00",
-];
 
 type Service = {
   id: number;
@@ -65,8 +88,17 @@ type Service = {
 };
 
 type Step = 1 | 2 | 3 | 4 | 5;
-type DayOption = { id: string; label: string; date: Date };
+type DayOption = { id: string; label: string; date: Date; freeSlots: number; isToday?: boolean };
 type ContactForm = { name: string; surname: string; mobile: string; email: string };
+
+type AvailabilityRecord = {
+  date: string;
+  is_available: boolean;
+  working_hours_start: string;
+  working_hours_end: string;
+};
+
+type ReservationSlot = { start_time: string; end_time: string };
 
 const initialContactForm: ContactForm = { name: "", surname: "", mobile: "", email: "" };
 
@@ -87,14 +119,125 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
 
-  type ReservationSlot = { start_time: string; end_time: string };
-  const [reservationsForDay, setReservationsForDay] = useState<ReservationSlot[]>([]);
-  const [reservationsLoading, setReservationsLoading] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState<{
+    availability: AvailabilityRecord[];
+    reservations: ReservationSlot[];
+  } | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
   
-  const weekDays = useMemo(() => getNextFiveWeekdays(), [open]);
+  const allWorkingDays = useMemo(() => getTodayPlusNextFiveWorkingDays(), [open]);
   const overlayRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveRef = useRef<HTMLElement | null>(null);
+
+  // SMART FILTERING: Calculate available dates with free slots
+  const availableDates = useMemo(() => {
+    if (!selectedBarber || !availabilityData) return [];
+
+    const filtered: DayOption[] = [];
+    const now = new Date();
+    const minBookableTime = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours from now
+
+    for (const day of allWorkingDays) {
+      const dateStr = day.id;
+      const isToday = day.isToday;
+
+      // Step 1: Check if barber marked this day unavailable
+      const availRecord = availabilityData.availability.find((a) => a.date === dateStr);
+      if (availRecord && !availRecord.is_available) {
+        continue; // Skip unavailable days
+      }
+
+      // Step 2: Generate time slots for this day
+      const workingStart = availRecord?.working_hours_start || "09:00:00";
+      const workingEnd = availRecord?.working_hours_end || "17:00:00";
+      const allSlots = generateTimeSlots(
+        workingStart.slice(0, 5), // HH:MM
+        workingEnd.slice(0, 5)
+      );
+
+      // Step 3: Filter out booked slots
+      const dayReservations = availabilityData.reservations.filter((res) => {
+        const resDate = new Date(res.start_time).toISOString().slice(0, 10);
+        return resDate === dateStr;
+      });
+
+      const freeSlots = allSlots.filter((slotTime) => {
+        const [hours, minutes] = slotTime.split(":").map(Number);
+        const slotStart = new Date(day.date);
+        slotStart.setHours(hours, minutes, 0, 0);
+
+        // TODAY SPECIAL: Apply 2-hour advance notice filter
+        if (isToday && slotStart < minBookableTime) {
+          return false; // Exclude slots less than 2 hours from now
+        }
+
+        const slotEnd = new Date(slotStart);
+        slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+
+        const slotStartMs = slotStart.getTime();
+        const slotEndMs = slotEnd.getTime();
+
+        // Check if slot overlaps with any reservation
+        return !dayReservations.some((r) => {
+          const resStart = new Date(r.start_time).getTime();
+          const resEnd = new Date(r.end_time).getTime();
+          return resStart < slotEndMs && resEnd > slotStartMs;
+        });
+      });
+
+      // Step 4: Only include days with at least 1 free slot
+      if (freeSlots.length > 0) {
+        filtered.push({ ...day, freeSlots: freeSlots.length, isToday });
+      }
+    }
+
+    return filtered;
+  }, [selectedBarber, availabilityData, allWorkingDays]);
+
+  // Generate available time slots for selected date
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedDay || !availabilityData) return [];
+
+    const dateStr = selectedDay.id;
+    const isToday = selectedDay.isToday;
+    const now = new Date();
+    const minBookableTime = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours from now
+
+    const availRecord = availabilityData.availability.find((a) => a.date === dateStr);
+    const workingStart = availRecord?.working_hours_start || "09:00:00";
+    const workingEnd = availRecord?.working_hours_end || "17:00:00";
+
+    const allSlots = generateTimeSlots(workingStart.slice(0, 5), workingEnd.slice(0, 5));
+
+    const dayReservations = availabilityData.reservations.filter((res) => {
+      const resDate = new Date(res.start_time).toISOString().slice(0, 10);
+      return resDate === dateStr;
+    });
+
+    return allSlots.filter((slotTime) => {
+      const [hours, minutes] = slotTime.split(":").map(Number);
+      const slotStart = new Date(selectedDay.date);
+      slotStart.setHours(hours, minutes, 0, 0);
+
+      // TODAY SPECIAL: Apply 2-hour advance notice filter
+      if (isToday && slotStart < minBookableTime) {
+        return false; // Exclude slots less than 2 hours from now
+      }
+
+      const slotEnd = new Date(slotStart);
+      slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+
+      const slotStartMs = slotStart.getTime();
+      const slotEndMs = slotEnd.getTime();
+
+      return !dayReservations.some((r) => {
+        const resStart = new Date(r.start_time).getTime();
+        const resEnd = new Date(r.end_time).getTime();
+        return resStart < slotEndMs && resEnd > slotStartMs;
+      });
+    });
+  }, [selectedDay, availabilityData]);
 
   const focusableSelector =
     'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -166,26 +309,35 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
   const handleOverlayClick = (e: React.MouseEvent) => { if (e.target === overlayRef.current) onClose(); };
 
   const resetAndClose = () => {
-    setStep(1); setSelectedBarber(null); setSelectedDay(null); setSelectedTime(null);
-    setSelectedService(null); setContactForm(initialContactForm); setBookingError(null);
-    setReservationId(null); onClose();
+    setStep(1);
+    setSelectedBarber(null);
+    setSelectedDay(null);
+    setSelectedTime(null);
+    setSelectedService(null);
+    setContactForm(initialContactForm);
+    setBookingError(null);
+    setReservationId(null);
+    setAvailabilityData(null);
+    onClose();
   };
 
   const handleConfirmBooking = async () => {
     if (!selectedBarber || !selectedDay || !selectedTime || !selectedService || !isContactValid) return;
     setBookingLoading(true); setBookingError(null);
     try {
-      const [hours, minutes] = selectedTime.split(":").map(Number);
-      const startDateTime = new Date(selectedDay.date);
-      startDateTime.setHours(hours, minutes, 0, 0);
+      const dateStr = `${selectedDay.id}T${selectedTime}:00`;
+      const startDateTime = new Date(dateStr);
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + selectedService.duration_minutes);
+      
       const email = contactForm.email?.trim();
       const payload = {
         barberId: Number(selectedBarber.id), serviceId: Number(selectedService.id),
         customerName: `${contactForm.name.trim()} ${contactForm.surname.trim()}`.trim(),
         customerPhone: contactForm.mobile.trim(), ...(email ? { customerEmail: email } : {}),
         startTime: startDateTime.toISOString(), endTime: endDateTime.toISOString(),
+        bookingDate: selectedDay.id,
+        bookingTime: selectedTime,
       };
       const response = await fetch("/api/reservations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json();
@@ -206,36 +358,53 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
     contactForm.mobile.trim() !== "" && contactForm.email.trim() !== "" &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email.trim());
 
-  const handleDaySelect = (day: DayOption) => { setSelectedDay(day); setSelectedTime(null); setReservationsForDay([]); };
+  const handleDaySelect = (day: DayOption) => {
+    setSelectedDay(day);
+    setSelectedTime(null);
+  };
 
+  // Fetch availability and reservations when barber is selected
   useEffect(() => {
-    if (!selectedBarber || !selectedDay || !open) { setReservationsForDay([]); return; }
-    const startOfDay = new Date(selectedDay.date); startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(selectedDay.date); endOfDay.setHours(23, 59, 59, 999);
-    const dayStart = encodeURIComponent(startOfDay.toISOString());
-    const dayEnd = encodeURIComponent(endOfDay.toISOString());
-    let cancelled = false;
-    setReservationsLoading(true);
-    fetch(`/api/reservations?barberId=${selectedBarber.id}&dayStart=${dayStart}&dayEnd=${dayEnd}`)
-      .then((res) => res.json())
-      .then((data) => { if (cancelled || !data.ok) return; setReservationsForDay(data.reservations ?? []); })
-      .catch(() => { if (!cancelled) setReservationsForDay([]); })
-      .finally(() => { if (!cancelled) setReservationsLoading(false); });
-    return () => { cancelled = true; };
-  }, [selectedBarber?.id, selectedDay?.id, open]);
+    if (!selectedBarber || !open) {
+      setAvailabilityData(null);
+      return;
+    }
 
-  const isSlotDisabled = useCallback((time: string): boolean => {
-    if (!selectedDay || reservationsForDay.length === 0) return false;
-    const [hours, minutes] = time.split(":").map(Number);
-    const slotStart = new Date(selectedDay.date); slotStart.setHours(hours, minutes, 0, 0);
-    const slotEnd = new Date(slotStart); slotEnd.setMinutes(slotEnd.getMinutes() + 30);
-    const slotStartMs = slotStart.getTime(); const slotEndMs = slotEnd.getTime();
-    return reservationsForDay.some((r) => {
-      const resStart = new Date(r.start_time).getTime();
-      const resEnd = new Date(r.end_time).getTime();
-      return resStart < slotEndMs && resEnd > slotStartMs;
-    });
-  }, [selectedDay, reservationsForDay]);
+    let cancelled = false;
+    setAvailabilityLoading(true);
+
+    const startDate = allWorkingDays[0]?.id;
+    const endDate = allWorkingDays[allWorkingDays.length - 1]?.id;
+
+    if (!startDate || !endDate) {
+      setAvailabilityLoading(false);
+      return;
+    }
+
+    fetch(`/api/booking-availability?barberId=${selectedBarber.id}&startDate=${startDate}&endDate=${endDate}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data.ok) return;
+        setAvailabilityData({
+          availability: data.availability ?? [],
+          reservations: data.reservations ?? [],
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching availability:", error);
+        if (!cancelled) {
+          setAvailabilityData({ availability: [], reservations: [] });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setAvailabilityLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedBarber?.id, open, allWorkingDays]);
+
 
   if (!open) return null;
 
@@ -253,10 +422,10 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#2A2A2F] px-6 py-5">
-          <h2 id="booking-modal-title" className="text-xl font-bold text-[#F5F5F7]">Book appointment</h2>
+          <h2 id="booking-modal-title" className="text-xl font-bold text-[#F5F5F7]">Zakažite termin</h2>
           <button type="button" onClick={resetAndClose}
             className="flex h-10 w-10 items-center justify-center rounded-sm text-[#A1A1A6] transition-default focus-ring hover:bg-[#1A1A1F] hover:text-[#F5F5F7]"
-            aria-label="Close">
+            aria-label="Zatvori">
             <span className="text-2xl leading-none">&times;</span>
           </button>
         </div>
@@ -273,7 +442,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
 
           {step === 1 && (
             <div>
-              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Choose your barber</h3>
+              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Izaberite svog berbera</h3>
               <ul className="grid gap-3 sm:grid-cols-3">
                 {BARBERS.map((barber) => (
                   <li key={barber.id}>
@@ -295,44 +464,84 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
 
           {step === 2 && (
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-[#F5F5F7]">Pick a day</h3>
-              <p className="mb-4 text-sm text-[#A1A1A6]">Choose one of the next 5 weekdays</p>
-              <ul className="mb-6 grid grid-cols-5 gap-2">
-                {weekDays.map((day) => (
-                  <li key={day.id} className="min-w-0">
-                    <button type="button" onClick={() => handleDaySelect(day)}
-                      className={`w-full min-w-0 rounded-sm border-2 px-2 py-3 text-center text-xs font-medium transition-default focus-ring sm:text-sm ${
-                        selectedDay?.id === day.id ? "border-[#F5F5F7] bg-[#F5F5F7] text-[#0A0A0B]" : "border-[#2A2A2F] text-[#F5F5F7] hover:border-[#3A3A40]"
-                      }`}>
-                      <span className="block">{day.label}</span>
-                      <span className="mt-1 block text-[10px] font-normal opacity-80 sm:text-xs">{formatDayDate(day.date)}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              {selectedDay && (
-                <>
-                  <h3 className="mb-4 text-lg font-semibold text-[#F5F5F7]">Pick a time</h3>
-                  <p className="mb-4 text-sm text-[#A1A1A6]">
-                    {reservationsLoading ? "Loading availability..." : `Available slots for ${selectedDay.label}, ${formatDayDate(selectedDay.date)}`}
+              <h3 className="mb-4 text-lg font-semibold text-[#F5F5F7]">Izaberite dan</h3>
+              
+              {availabilityLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-sm border-4 border-[#F5F5F7] border-t-transparent"></div>
+                  <span className="ml-3 text-sm text-[#A1A1A6]">Učitavanje dostupnosti...</span>
+                </div>
+              ) : availableDates.length === 0 ? (
+                <div className="mb-4 rounded-sm bg-red-500/10 border border-red-500/30 p-4">
+                  <p className="text-sm text-red-400">
+                    Frizer trenutno nema slobodnih termina u narednih 6 dana. Molimo pokušajte kasnije.
                   </p>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-sm text-[#A1A1A6]">
+                    Dostupni dani sa slobodnim terminima (danas + narednih 5 dana, uključujući subotu)
+                  </p>
+                  <p className="mb-4 text-xs text-[#6B6B70]">
+                    Napomena: Za današnje termine potrebno je zakazati najmanje 2 sata unapred
+                  </p>
+                  <ul className="mb-6 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                    {availableDates.map((day) => (
+                      <li key={day.id} className="min-w-0 relative">
+                        <button
+                          type="button"
+                          onClick={() => handleDaySelect(day)}
+                          className={`w-full min-w-0 rounded-sm border-2 px-2 py-3 text-center text-xs font-medium transition-default focus-ring sm:text-sm ${
+                            selectedDay?.id === day.id
+                              ? "border-[#F5F5F7] bg-[#F5F5F7] text-[#0A0A0B]"
+                              : "border-[#2A2A2F] text-[#F5F5F7] hover:border-[#3A3A40]"
+                          }`}
+                        >
+                          {day.isToday && (
+                            <span className="absolute -top-2 -right-2 rounded-full bg-[#D3AF37] px-2 py-0.5 text-[9px] font-bold text-[#0A0A0B]">
+                              DANAS
+                            </span>
+                          )}
+                          <span className="block">{day.label}</span>
+                          <span className="mt-1 block text-[10px] font-normal opacity-80 sm:text-xs">
+                            {formatDayDate(day.date)}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              {selectedDay && availableTimeSlots.length > 0 && (
+                <>
+                  <h3 className="mb-4 text-lg font-semibold text-[#F5F5F7]">Izaberite vreme</h3>
+                  <p className="mb-4 text-sm text-[#A1A1A6]">
+                    Dostupni termini za {selectedDay.label}, {formatDayDate(selectedDay.date)}
+                  </p>
+                  {selectedDay.isToday && (
+                    <div className="mb-4 rounded-sm bg-[#D3AF37]/10 border border-[#D3AF37]/30 px-4 py-3">
+                      <p className="text-xs text-[#D3AF37]">
+                        ⏰ Rezervišete za danas - prikazani su samo termini koji počinju najmanje 2 sata od trenutka
+                      </p>
+                    </div>
+                  )}
                   <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-                    {TIME_SLOTS.map((time) => {
-                      const disabled = isSlotDisabled(time);
-                      return (
-                        <li key={time} className="min-w-0">
-                          <button type="button" disabled={disabled} onClick={() => !disabled && setSelectedTime(time)}
-                            title={disabled ? "This slot is already booked" : undefined}
-                            className={`flex min-h-[44px] w-full min-w-0 items-center justify-center rounded-sm border-2 py-2.5 text-sm font-medium transition-default focus-ring ${
-                              disabled ? "cursor-not-allowed border-[#2A2A2F] bg-[#1A1A1F] text-[#6B6B70] line-through"
-                                : selectedTime === time ? "border-[#F5F5F7] bg-[#F5F5F7] text-[#0A0A0B]"
-                                : "border-[#2A2A2F] text-[#F5F5F7] hover:border-[#3A3A40]"
-                            }`}>
-                            {time}
-                          </button>
-                        </li>
-                      );
-                    })}
+                    {availableTimeSlots.map((time) => (
+                      <li key={time} className="min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTime(time)}
+                          className={`flex min-h-[44px] w-full min-w-0 items-center justify-center rounded-sm border-2 py-2.5 text-sm font-medium transition-default focus-ring ${
+                            selectedTime === time
+                              ? "border-[#F5F5F7] bg-[#F5F5F7] text-[#0A0A0B]"
+                              : "border-[#2A2A2F] text-[#F5F5F7] hover:border-[#3A3A40]"
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </>
               )}
@@ -341,11 +550,11 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
 
           {step === 3 && (
             <div>
-              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Select service</h3>
+              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Izaberite uslugu</h3>
               {servicesLoading && (
                 <div className="flex items-center justify-center py-8">
                   <div className="h-8 w-8 animate-spin rounded-sm border-4 border-[#F5F5F7] border-t-transparent"></div>
-                  <span className="ml-3 text-sm text-[#A1A1A6]">Loading services...</span>
+                  <span className="ml-3 text-sm text-[#A1A1A6]">Učitavanje usluga...</span>
                 </div>
               )}
               {servicesError && (
@@ -353,12 +562,12 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                   <p className="text-sm text-red-400 mb-3">{servicesError}</p>
                   <button type="button" onClick={fetchServices}
                     className="min-h-[44px] rounded-sm bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-default hover:bg-red-600">
-                    Retry
+                    Pokušaj ponovo
                   </button>
                 </div>
               )}
               {!servicesLoading && !servicesError && services.length === 0 && (
-                <p className="py-8 text-center text-sm text-[#A1A1A6]">No services available at the moment.</p>
+                <p className="py-8 text-center text-sm text-[#A1A1A6]">Trenutno nema dostupnih usluga.</p>
               )}
               {!servicesLoading && !servicesError && services.length > 0 && (
                 <ul className="space-y-3">
@@ -383,37 +592,37 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
 
           {step === 4 && (
             <div>
-              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Confirm booking</h3>
+              <h3 className="mb-5 text-lg font-semibold text-[#F5F5F7]">Potvrdite rezervaciju</h3>
               <div className="rounded-sm bg-[#1A1A1F] border border-[#2A2A2F] p-5">
-                <p className="text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Barber:</strong> {selectedBarber?.name}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Day:</strong> {selectedDay ? `${selectedDay.label}, ${formatDayDate(selectedDay.date)}` : ""}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Time:</strong> {selectedTime}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Service:</strong> {selectedService?.service_name} — {selectedService?.price_rsd} RSD</p>
-                <p className="mt-4 text-xl font-bold text-[#F5F5F7]">Total: {selectedService?.price_rsd ?? 0} RSD</p>
+                <p className="text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Berber:</strong> {selectedBarber?.name}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Dan:</strong> {selectedDay ? `${selectedDay.label}, ${formatDayDate(selectedDay.date)}` : ""}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Vreme:</strong> {selectedTime}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Usluga:</strong> {selectedService?.service_name} — {selectedService?.price_rsd} RSD</p>
+                <p className="mt-4 text-xl font-bold text-[#F5F5F7]">Ukupno: {selectedService?.price_rsd ?? 0} RSD</p>
               </div>
-              <h4 className="mt-6 mb-4 font-medium text-[#F5F5F7]">Your details</h4>
+              <h4 className="mt-6 mb-4 font-medium text-[#F5F5F7]">Vaši podaci</h4>
               <form className="grid gap-4 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
                 <label className="sm:col-span-1">
-                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Name</span>
-                  <input type="text" value={contactForm.name} onChange={updateContact("name")} placeholder="Your first name"
+                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Ime</span>
+                  <input type="text" value={contactForm.name} onChange={updateContact("name")} placeholder="Vaše ime"
                     className="w-full min-h-[44px] rounded-sm border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-3 text-sm text-[#F5F5F7] placeholder:text-[#6B6B70] transition-default focus:border-[#F5F5F7] focus:outline-none focus:ring-2 focus:ring-[#F5F5F7]/20"
                     autoComplete="given-name" />
                 </label>
                 <label className="sm:col-span-1">
-                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Surname</span>
-                  <input type="text" value={contactForm.surname} onChange={updateContact("surname")} placeholder="Your surname"
+                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Prezime</span>
+                  <input type="text" value={contactForm.surname} onChange={updateContact("surname")} placeholder="Vaše prezime"
                     className="w-full min-h-[44px] rounded-sm border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-3 text-sm text-[#F5F5F7] placeholder:text-[#6B6B70] transition-default focus:border-[#F5F5F7] focus:outline-none focus:ring-2 focus:ring-[#F5F5F7]/20"
                     autoComplete="family-name" />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Mobile number</span>
-                  <input type="tel" value={contactForm.mobile} onChange={updateContact("mobile")} placeholder="e.g. +381 60 123 4567"
+                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Broj telefona</span>
+                  <input type="tel" value={contactForm.mobile} onChange={updateContact("mobile")} placeholder="npr. +381 60 123 4567"
                     className="w-full min-h-[44px] rounded-sm border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-3 text-sm text-[#F5F5F7] placeholder:text-[#6B6B70] transition-default focus:border-[#F5F5F7] focus:outline-none focus:ring-2 focus:ring-[#F5F5F7]/20"
                     autoComplete="tel" />
                 </label>
                 <label className="sm:col-span-2">
-                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Email</span>
-                  <input type="email" value={contactForm.email} onChange={updateContact("email")} placeholder="your@email.com"
+                  <span className="mb-1.5 block text-sm font-medium text-[#A1A1A6]">Imejl</span>
+                  <input type="email" value={contactForm.email} onChange={updateContact("email")} placeholder="vas@email.com"
                     className="w-full min-h-[44px] rounded-sm border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-3 text-sm text-[#F5F5F7] placeholder:text-[#6B6B70] transition-default focus:border-[#F5F5F7] focus:outline-none focus:ring-2 focus:ring-[#F5F5F7]/20"
                     autoComplete="email" />
                 </label>
@@ -435,16 +644,16 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                   </svg>
                 </div>
               </div>
-              <h3 className="mb-3 text-2xl font-bold text-[#F5F5F7]">Booking Confirmed!</h3>
-              <p className="mb-6 text-base text-[#A1A1A6]">Your reservation has been successfully created.</p>
+              <h3 className="mb-3 text-2xl font-bold text-[#F5F5F7]">Rezervacija potvrđena!</h3>
+              <p className="mb-6 text-base text-[#A1A1A6]">Vaša rezervacija je uspešno kreirana. Vidimo se uskoro!</p>
               <div className="mx-auto max-w-sm rounded-sm bg-[#1A1A1F] border border-[#2A2A2F] p-5 text-left">
-                <p className="text-xs text-[#6B6B70] mb-3"><strong>Reservation ID:</strong> {reservationId}</p>
-                <p className="text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Barber:</strong> {selectedBarber?.name}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">When:</strong> {selectedDay ? `${selectedDay.label}, ${formatDayDate(selectedDay.date)} at ${selectedTime}` : ""}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Service:</strong> {selectedService?.service_name}</p>
-                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Total:</strong> {selectedService?.price_rsd} RSD</p>
+                <p className="text-xs text-[#6B6B70] mb-3"><strong>ID rezervacije:</strong> {reservationId}</p>
+                <p className="text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Berber:</strong> {selectedBarber?.name}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Kada:</strong> {selectedDay ? `${selectedDay.label}, ${formatDayDate(selectedDay.date)} u ${selectedTime}` : ""}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Usluga:</strong> {selectedService?.service_name}</p>
+                <p className="mt-2 text-sm text-[#A1A1A6]"><strong className="text-[#F5F5F7]">Ukupno:</strong> {selectedService?.price_rsd} RSD</p>
               </div>
-              <p className="mt-6 text-sm text-[#A1A1A6]">We&apos;ll send you a confirmation email shortly.</p>
+              <p className="mt-6 text-sm text-[#A1A1A6]">Uskoro ćete dobiti potvrdu na imejl.</p>
             </div>
           )}
         </div>
@@ -454,7 +663,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
           {step > 1 && step < 5 ? (
             <button type="button" onClick={() => setStep((s) => (s - 1) as Step)} disabled={bookingLoading}
               className="min-h-[48px] rounded-sm border-2 border-[#2A2A2F] px-6 py-3 text-sm font-semibold text-[#F5F5F7] transition-default focus-ring hover:border-[#3A3A40] hover:bg-[#1A1A1F]">
-              Back
+              Nazad
             </button>
           ) : <span />}
           {step < 4 ? (
@@ -462,7 +671,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
               onClick={() => { if ((step === 1 && selectedBarber) || (step === 2 && selectedDay && selectedTime) || (step === 3 && selectedService)) setStep((s) => (s + 1) as Step); }}
               disabled={(step === 1 && !selectedBarber) || (step === 2 && (!selectedDay || !selectedTime)) || (step === 3 && !selectedService)}
               className="min-h-[48px] rounded-sm bg-[#D3AF37] px-6 py-3 text-sm font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] disabled:opacity-50 disabled:cursor-not-allowed">
-              Next
+              Dalje
             </button>
           ) : step === 4 ? (
             <button type="button" onClick={handleConfirmBooking} disabled={!isContactValid || bookingLoading}
@@ -470,14 +679,14 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
               {bookingLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-sm border-2 border-[#0A0A0B] border-t-transparent"></span>
-                  Booking...
+                  Rezervišem...
                 </span>
-              ) : "Confirm Booking"}
+              ) : "Potvrdite rezervaciju"}
             </button>
           ) : (
             <button type="button" onClick={resetAndClose}
               className="min-h-[48px] rounded-sm bg-[#D3AF37] px-6 py-3 text-sm font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A]">
-              Close
+              Zatvori
             </button>
           )}
         </div>

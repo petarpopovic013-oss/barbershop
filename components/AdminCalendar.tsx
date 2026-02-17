@@ -91,18 +91,30 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
       {/* Header */}
       <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl">Admin Dashboard</h1>
-          <p className="mt-1 text-base text-[#A1A1A6]">Manage reservations and schedule</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl">Admin Panel</h1>
+          <p className="mt-1 text-base text-[#A1A1A6]">Upravljanje rezervacijama i rasporedom</p>
         </div>
-        <button type="button" onClick={handleLogout}
-          className="admin-btn-secondary flex items-center gap-2 min-h-[44px] rounded-lg border border-[#2A2A2F] px-5 py-2.5 text-sm font-medium text-[#A1A1A6] transition-all hover:border-[#3A3A40] hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Log out
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <a href="/admin/availability"
+            className="admin-btn-secondary flex items-center gap-2 min-h-[44px] rounded-lg border border-[#2A2A2F] px-5 py-2.5 text-sm font-medium text-[#A1A1A6] transition-all hover:border-[#3A3A40] hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Dostupnost berbera
+          </a>
+          <button type="button" onClick={handleLogout}
+            className="admin-btn-secondary flex items-center gap-2 min-h-[44px] rounded-lg border border-[#2A2A2F] px-5 py-2.5 text-sm font-medium text-[#A1A1A6] transition-all hover:border-[#3A3A40] hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Odjavi se
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -112,10 +124,10 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
             <AdminDatePicker value={dateStr} onChange={(d) => updateParams({ date: d })} datesWithReservations={datesWithReservations} />
 
             <div className="rounded-[14px] border border-[#2A2A2F] bg-[#141417] p-5">
-              <label className="mb-3 block text-xs font-medium uppercase tracking-wider text-[#A1A1A6]">Filter by barber</label>
+              <label className="mb-3 block text-xs font-medium uppercase tracking-wider text-[#A1A1A6]">Filtriraj po berberu</label>
               <select value={barberFilter} onChange={(e) => updateParams({ barber: e.target.value })}
                 className="admin-select w-full min-h-[44px] rounded-lg border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-2.5 text-sm text-[#F5F5F7] transition-colors focus:border-[#D3AF37] focus:outline-none focus:ring-2 focus:ring-[#D3AF37]/25">
-                <option value="all">All barbers</option>
+                <option value="all">Svi berberi</option>
                 {barbers.map((b) => (<option key={b.id} value={String(b.id)}>{b.name}</option>))}
               </select>
             </div>
@@ -124,11 +136,11 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
               <button type="button" onClick={prevDay}
                 className="flex flex-1 items-center justify-center gap-1.5 min-h-[44px] rounded-lg py-2.5 text-sm font-medium text-[#A1A1A6] transition-colors hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-                Prev
+                Prethodni
               </button>
               <button type="button" onClick={nextDay}
                 className="flex flex-1 items-center justify-center gap-1.5 min-h-[44px] rounded-lg py-2.5 text-sm font-medium text-[#A1A1A6] transition-colors hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring">
-                Next
+                Sledeći
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
               </button>
             </div>
@@ -148,9 +160,9 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
 
           <div className="admin-schedule-card overflow-hidden rounded-[20px] border border-[#2A2A2F] bg-[#141417] shadow-lg">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2A2A2F] bg-[#1A1A1F] px-6 py-5">
-              <h2 className="text-xl font-bold tracking-tight text-[#F5F5F7]">Schedule — {dayLabel}</h2>
+              <h2 className="text-xl font-bold tracking-tight text-[#F5F5F7]">Raspored — {dayLabel}</h2>
               <span className="rounded-full bg-[#D3AF37] px-4 py-1.5 text-xs font-semibold text-[#0A0A0B]">
-                {reservations.length} appointment{reservations.length !== 1 ? "s" : ""}
+                {reservations.length} {reservations.length === 1 ? "zakazivanje" : reservations.length >= 2 && reservations.length <= 4 ? "zakazivanja" : "zakazivanja"}
               </span>
             </div>
 
@@ -162,8 +174,8 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
                   </div>
-                  <p className="text-base font-medium text-[#F5F5F7]">No reservations for this day</p>
-                  <p className="mt-1 text-sm text-[#6B6B70]">Select another date or check back later</p>
+                  <p className="text-base font-medium text-[#F5F5F7]">Nema rezervacija za ovaj dan</p>
+                  <p className="mt-1 text-sm text-[#6B6B70]">Izaberite drugi datum ili proverite kasnije</p>
                 </div>
               ) : (
                 <div className="admin-schedule-grid grid min-w-[580px]"
@@ -207,19 +219,19 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
 
           {/* Statistics */}
           <section className="mt-12" aria-labelledby="stats-heading">
-            <h2 id="stats-heading" className="mb-5 text-xl font-bold tracking-tight text-[#F5F5F7]">Overview</h2>
+            <h2 id="stats-heading" className="mb-5 text-xl font-bold tracking-tight text-[#F5F5F7]">Pregled</h2>
             <div className="grid gap-5 sm:grid-cols-3">
               <div className="rounded-[14px] border border-[#2A2A2F] bg-[#141417] p-6">
                 <p className="text-3xl font-bold text-[#F5F5F7]">{reservations.length}</p>
-                <p className="mt-1 text-sm text-[#A1A1A6]">Today&apos;s appointments</p>
+                <p className="mt-1 text-sm text-[#A1A1A6]">Današnja zakazivanja</p>
               </div>
               <div className="rounded-[14px] border border-[#2A2A2F] bg-[#141417] p-6">
                 <p className="text-3xl font-bold text-[#F5F5F7]">{barbers.length}</p>
-                <p className="mt-1 text-sm text-[#A1A1A6]">Active barbers</p>
+                <p className="mt-1 text-sm text-[#A1A1A6]">Aktivni berberi</p>
               </div>
               <div className="rounded-[14px] border border-[#2A2A2F] bg-[#141417] p-6">
                 <p className="text-3xl font-bold text-[#F5F5F7]">{services.length}</p>
-                <p className="mt-1 text-sm text-[#A1A1A6]">Services offered</p>
+                <p className="mt-1 text-sm text-[#A1A1A6]">Ponuđene usluge</p>
               </div>
             </div>
           </section>
@@ -234,28 +246,28 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
             onClick={(e) => e.stopPropagation()}>
             <div className="mb-6 flex items-start justify-between">
               <div>
-                <h3 id="reservation-dialog-title" className="text-xl font-bold text-[#F5F5F7]">Reservation details</h3>
+                <h3 id="reservation-dialog-title" className="text-xl font-bold text-[#F5F5F7]">Detalji rezervacije</h3>
                 <p className="mt-1 text-sm text-[#A1A1A6]">{getLocalTimeString(selectedReservation.r.start_time)} – {getLocalTimeString(selectedReservation.r.end_time)}</p>
               </div>
               <button type="button" onClick={() => setSelectedReservation(null)}
-                className="rounded-lg p-2 text-[#A1A1A6] transition-colors hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring" aria-label="Close">
+                className="rounded-lg p-2 text-[#A1A1A6] transition-colors hover:bg-[#1A1A1F] hover:text-[#F5F5F7] focus-ring" aria-label="Zatvori">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
             <dl className="space-y-5">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Customer</dt>
+                <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Korisnik</dt>
                 <dd className="mt-1 font-medium text-[#F5F5F7]">{selectedReservation.r.customer_name}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Phone</dt>
+                <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Telefon</dt>
                 <dd className="mt-1 text-[#F5F5F7]">
                   <a href={`tel:${selectedReservation.r.customer_phone}`} className="text-[#009FFD] hover:text-[#33B3FF] hover:underline">{selectedReservation.r.customer_phone}</a>
                 </dd>
               </div>
               {selectedReservation.r.customer_email && (
                 <div>
-                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Email</dt>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Imejl</dt>
                   <dd className="mt-1 text-[#F5F5F7]">
                     <a href={`mailto:${selectedReservation.r.customer_email}`} className="text-[#009FFD] hover:text-[#33B3FF] hover:underline">{selectedReservation.r.customer_email}</a>
                   </dd>
@@ -263,11 +275,11 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
               )}
               <div className="flex gap-8">
                 <div>
-                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Barber</dt>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Berber</dt>
                   <dd className="mt-1 text-[#F5F5F7]">{selectedReservation.barber?.name ?? "—"}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Service</dt>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Usluga</dt>
                   <dd className="mt-1 text-[#F5F5F7]">
                     {selectedReservation.service?.service_name ?? "—"}
                     {selectedReservation.service && (

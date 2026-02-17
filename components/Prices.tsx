@@ -36,10 +36,10 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
             id="prices-heading"
             className="mb-4 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
           >
-            Our prices
+            Naše cene
           </h2>
           <p className="mx-auto max-w-xl text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-            Transparent pricing for all our services. Quality cuts at fair prices.
+            Transparentne cene za sve naše usluge. Vrhunski rezovi po poštenim cenama.
           </p>
         </div>
         
@@ -51,13 +51,13 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
                   scope="col"
                   className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[#A1A1A6]"
                 >
-                  Service
+                  Usluga
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-[#A1A1A6]"
                 >
-                  Price
+                  Cena
                 </th>
               </tr>
             </thead>
@@ -91,14 +91,14 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
         
         <div className="mt-12 flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-center">
           <p className="text-base text-[#A1A1A6]">
-            Ready for a sharp look? Book your slot with us.
+            Spremni za savršen izgled koji ostavlja utisak? Zakažite svoj termin.
           </p>
           <button
             type="button"
             onClick={onBookClick}
             className="shrink-0 min-h-[48px] rounded-sm bg-[#D3AF37] px-8 py-3 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] active:scale-[0.99]"
           >
-            Book appointment
+            Zakažite termin
           </button>
         </div>
       </div>

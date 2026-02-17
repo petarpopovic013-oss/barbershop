@@ -24,36 +24,38 @@ export function Hero({
         priority
         sizes="100vw"
       />
-      <div className="relative z-20 mx-auto flex min-h-[90vh] max-w-7xl flex-col justify-between px-4 py-16 sm:min-h-[85vh] sm:px-6 sm:py-20 lg:flex-row lg:items-center lg:gap-16 lg:px-8 lg:py-24">
-        {/* Booking Card */}
-        <div className="flex flex-1 flex-col justify-center lg:max-w-md">
-          <div className="rounded-sm bg-[#141417]/90 backdrop-blur-sm border border-[#2A2A2F] p-8 sm:p-10">
-            <h2 className="mb-4 text-2xl font-semibold tracking-tight text-[#F5F5F7] sm:text-3xl">
-              Make an appointment
+      <div className="relative z-20 mx-auto flex min-h-[90vh] max-w-7xl flex-col justify-center px-4 py-12 sm:min-h-[85vh] sm:px-6 sm:py-16 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-8 lg:py-20">
+        
+        {/* Hero Headline - First on mobile, right on desktop */}
+        <div className="order-1 flex flex-1 flex-col items-start justify-center lg:order-2">
+          <h1 className="text-[2.5rem] font-bold leading-[1.15] tracking-tight text-[#F5F5F7] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-7xl">
+            Gde tradicija <br className="hidden sm:block" />susreće{" "}
+            <span className="block font-display italic font-normal text-[#D3AF37] sm:inline">moderan stil</span>
+          </h1>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-[#A1A1A6] sm:mt-8 sm:text-lg lg:text-xl">
+            Mesto gde se klasično berberstvo susreće sa savremenim stilom. Vrhunski rezovi i opuštena atmosfera u srcu Novog Sada.
+          </p>
+        </div>
+
+        {/* Booking Card - Second on mobile, left on desktop */}
+        <div className="order-2 mt-10 flex flex-1 flex-col justify-center sm:mt-12 lg:order-1 lg:mt-0 lg:max-w-md">
+          <div className="rounded-sm bg-[#141417]/90 backdrop-blur-sm border border-[#2A2A2F] p-6 sm:p-8 lg:p-10">
+            <h2 className="mb-3 text-xl font-semibold tracking-tight text-[#F5F5F7] sm:mb-4 sm:text-2xl lg:text-3xl">
+              Zakažite termin
             </h2>
-            <p className="mb-8 text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-              Pick your preferred barber and time. We&apos;ll confirm your slot.
+            <p className="mb-6 text-sm leading-relaxed text-[#A1A1A6] sm:mb-8 sm:text-base lg:text-lg">
+              Izaberite svog brijača i termin koji Vam odgovara. Mi ćemo potvrditi Vaš slot i spremiti sve za savršen izgled.
             </p>
             <button
               type="button"
               onClick={onBookClick}
-              className="w-full min-h-[52px] rounded-sm bg-[#D3AF37] py-4 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] active:scale-[0.99] sm:text-lg"
+              className="w-full min-h-[48px] rounded-sm bg-[#D3AF37] py-3.5 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] active:scale-[0.99] sm:min-h-[52px] sm:py-4 sm:text-lg"
             >
-              Book appointment
+              Zakažite termin
             </button>
           </div>
-          <p className="mt-8 max-w-md text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-            A place where classic barbering meets today&apos;s style. Quality cuts and a relaxed atmosphere in the heart of Novi Sad.
-          </p>
         </div>
         
-        {/* Hero Headline */}
-        <div className="mt-12 flex items-center lg:mt-0 lg:flex-1 lg:justify-end">
-          <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-[#F5F5F7] sm:text-5xl md:text-6xl lg:text-7xl">
-            Where tradition meets{" "}
-            <span className="font-display italic font-normal text-[#D3AF37]">modern style</span>
-          </h1>
-        </div>
       </div>
       {children}
     </section>

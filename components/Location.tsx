@@ -32,16 +32,16 @@ export function Location() {
             id="location-heading"
             className="mb-5 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
           >
-            Visit us
+            Posetite nas
           </h2>
           <p className="mb-8 max-w-lg text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-            We&apos;re in the center of Novi Sad. Walk-ins welcome when we have free slots—otherwise book ahead to secure your spot.
+            Nalazimo se u centru Novog Sada. Primamo i bez zakazivanja kada imamo slobodne termine—ali zakažite unapred da obezbedite svoje mesto.
           </p>
           <a
             href="#contact"
             className="inline-flex items-center gap-2 min-h-[48px] rounded-sm bg-[#D3AF37] px-6 py-3.5 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A]"
           >
-            Get directions
+            Dobijte putanju
             <span aria-hidden>→</span>
           </a>
         </div>
@@ -57,7 +57,7 @@ export function Location() {
             </span>
             <div>
               <h3 className="text-base font-semibold text-[#F5F5F7]">
-                Address
+                Adresa
               </h3>
               <p className="mt-2 text-base text-[#A1A1A6] leading-relaxed">
                 Example Street 1<br />
@@ -75,11 +75,11 @@ export function Location() {
             </span>
             <div>
               <h3 className="text-base font-semibold text-[#F5F5F7]">
-                Hours & contact
+                Radno vreme i kontakt
               </h3>
               <p className="mt-2 text-base text-[#A1A1A6] leading-relaxed">
-                Mon–Fri 9:00–20:00<br />
-                Sat 9:00–16:00
+                Pon–Pet 9:00–20:00<br />
+                Sub 9:00–16:00
               </p>
               <a
                 href="tel:+381123456789"
@@ -98,7 +98,7 @@ export function Location() {
             aria-hidden
           >
             <div className="flex h-full w-full items-center justify-center text-[#6B6B70] text-lg">
-              Map placeholder
+              Mapa
             </div>
           </div>
         </div>

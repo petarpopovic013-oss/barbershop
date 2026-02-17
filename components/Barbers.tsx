@@ -6,24 +6,24 @@ import Image from "next/image";
 const barbers = [
   {
     id: "barber-1",
-    name: "Marko",
-    role: "Master Barber",
+    name: "Ratko",
+    role: "Majstor Berber",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop",
-    bio: "Marko brings over 12 years of experience to the chair. Specializing in classic cuts and modern fades, he believes a great haircut starts with understanding what each client wants.",
+    bio: "Ratko donosi preko 12 godina iskustva. Specijalizovan za klasične rezove i moderne fade-ove, veruje da savršena šišanje počinje razumevanjem onoga što svaki klijent želi.",
   },
   {
     id: "barber-2",
     name: "Stefan",
-    role: "Senior Barber",
+    role: "Viši Berber",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop",
-    bio: "Stefan has been shaping style in the industry for 8 years. His passion is precision scissor work and beard grooming. He's trained in both traditional and contemporary techniques.",
+    bio: "Stefan već 8 godina oblikuje stil. Njegova strast je precizna šišanja makazama i oblikovanje brade. Obučen je za tradicionalne i savremene tehnike.",
   },
   {
     id: "barber-3",
     name: "Nikola",
-    role: "Barber",
+    role: "Berber",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=500&fit=crop",
-    bio: "Nikola is our newest talent with a fresh perspective. He excels at textured cuts and creative styling. Always learning, he stays current with the latest trends and techniques.",
+    bio: "Nikola je naš najnoviji talenat sa svežim pristupom. Izvrsno se snalazi sa teksturiranim rezovima i kreativnim stilizovanjem. Uvek uči i prati najnovije trendove i tehnike.",
   },
 ];
 
@@ -58,11 +58,10 @@ export function Barbers() {
             id="barbers-heading"
             className="mb-4 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
           >
-            Meet our barbers
+            Upoznajte naše berbere
           </h2>
           <p className="mx-auto max-w-xl text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-            Three experienced barbers who care about detail and your comfort. Click
-            an image to read their bio.
+            Tri iskusna brijača koji vode računa o detaljima i Vašoj udobnosti. Kliknite na sliku da pročitate njihovu biografiju.
           </p>
         </div>
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
@@ -82,7 +81,7 @@ export function Barbers() {
                     setFlippedId(flippedId === id ? null : id);
                   }
                 }}
-                aria-label={`${flippedId === id ? "Show" : "View"} ${name} bio`}
+                aria-label={`${flippedId === id ? "Prikaži" : "Pogledaj"} ${name} biografiju`}
               >
                 {/* Front */}
                 <div className="barber-flip-front absolute inset-0 overflow-hidden rounded-sm bg-[#141417] border border-[#2A2A2F] transition-all hover:border-[#3A3A40] [backface-visibility:hidden]">

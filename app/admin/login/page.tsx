@@ -22,13 +22,13 @@ export default function AdminLoginPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        setError(data.message || "Invalid password");
+        setError(data.message || "Pogrešna lozinka");
         return;
       }
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("Something went wrong");
+      setError("Nešto je pošlo po zlu");
     } finally {
       setLoading(false);
     }
@@ -38,19 +38,19 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0B] px-4">
       <div className="w-full max-w-sm rounded-[20px] border border-[#2A2A2F] bg-[#141417] p-8 shadow-2xl">
         <h1 className="mb-8 text-center text-2xl font-bold text-[#F5F5F7]">
-          Admin login
+          Admin prijava
         </h1>
         <form onSubmit={handleSubmit} className="space-y-5">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-[#A1A1A6]">
-              Password
+              Lozinka
             </span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full min-h-[48px] rounded-lg border border-[#2A2A2F] bg-[#0A0A0B] px-4 py-3 text-[#F5F5F7] placeholder:text-[#6B6B70] transition-default focus:border-[#D3AF37] focus:outline-none focus:ring-2 focus:ring-[#D3AF37]/25"
-              placeholder="Enter password"
+              placeholder="Unesite lozinku"
               autoFocus
             />
           </label>
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
             disabled={loading || !password}
             className="w-full min-h-[48px] rounded-lg bg-[#D3AF37] py-3 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Prijavljivanje..." : "Prijavi se"}
           </button>
         </form>
         <p className="mt-6 text-center">
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
             href="/"
             className="text-sm text-[#009FFD] hover:text-[#33B3FF] transition-colors"
           >
-            ← Back to site
+            ← Nazad na sajt
           </Link>
         </p>
       </div>

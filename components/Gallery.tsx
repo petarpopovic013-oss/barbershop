@@ -3,15 +3,15 @@ import Image from "next/image";
 const galleryImages = [
   {
     src: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=700&fit=crop",
-    alt: "Haircut style example",
+    alt: "Primer stila šišanja",
   },
   {
     src: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&h=700&fit=crop",
-    alt: "Beard trim result",
+    alt: "Rezultat oblikovanja brade",
   },
   {
     src: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&h=700&fit=crop",
-    alt: "Classic cut",
+    alt: "Klasičan rez",
   },
 ];
 
@@ -30,10 +30,10 @@ export function Gallery() {
               id="gallery-heading"
               className="mb-5 text-3xl font-bold tracking-tight text-[#F5F5F7] sm:text-4xl lg:text-5xl"
             >
-              Our work
+              Naš rad
             </h2>
             <p className="mb-8 max-w-md text-base leading-relaxed text-[#A1A1A6] sm:text-lg">
-              From fades to classic cuts and beard styling—see what we do every day in the chair.
+              Od fade-ova do klasičnih rezova i oblikovanja brade—pogledajte šta radimo svaki dan.
             </p>
             <div className="flex items-center gap-4">
               <span className="text-sm text-[#6B6B70]">1 / {galleryImages.length}</span>
@@ -41,14 +41,14 @@ export function Gallery() {
                 <button
                   type="button"
                   className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#3A3A40] text-[#A1A1A6] transition-default focus-ring hover:bg-[#F5F5F7] hover:border-[#F5F5F7] hover:text-[#0A0A0B]"
-                  aria-label="Previous image"
+                  aria-label="Prethodna slika"
                 >
                   ←
                 </button>
                 <button
                   type="button"
                   className="flex h-11 w-11 items-center justify-center rounded-sm border border-[#3A3A40] text-[#A1A1A6] transition-default focus-ring hover:bg-[#F5F5F7] hover:border-[#F5F5F7] hover:text-[#0A0A0B]"
-                  aria-label="Next image"
+                  aria-label="Sledeća slika"
                 >
                   →
                 </button>

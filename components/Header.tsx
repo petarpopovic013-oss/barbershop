@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "Barbers" },
-  { href: "#prices", label: "Prices" },
-  { href: "#visit", label: "Visit" },
-  { href: "#gallery", label: "Gallery" },
+  { href: "#home", label: "Početak" },
+  { href: "#about", label: "Berberi" },
+  { href: "#prices", label: "Cene" },
+  { href: "#visit", label: "Posetite nas" },
+  { href: "#gallery", label: "Galerija" },
   { href: "/admin", label: "Admin" },
 ];
 
@@ -25,13 +25,13 @@ function getActiveLabel(): string {
     const top = el.getBoundingClientRect().top;
     if (top <= offset) currentId = id;
   }
-  return (currentId && ID_TO_LABEL[currentId]) || "Home";
+  return (currentId && ID_TO_LABEL[currentId]) || "Početak";
 }
 
 export function Header({ onBookClick }: { onBookClick: () => void }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState("Home");
+  const [activeLink, setActiveLink] = useState("Početak");
   const [scrolled, setScrolled] = useState(false);
   const isAdmin = pathname === "/admin";
 
@@ -62,9 +62,9 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
         <Link
           href={isAdmin ? "/" : "#home"}
           className="text-xl font-bold tracking-tight text-[#F5F5F7] focus-ring rounded transition-default hover:opacity-70"
-          onClick={() => setActiveLink("Home")}
+          onClick={() => setActiveLink("Početak")}
         >
-          Sharp Cut
+          RSBARBERSHOP
         </Link>
 
         <nav
@@ -74,7 +74,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              href={label === "Home" && isAdmin ? "/" : href}
+              href={label === "Početak" && isAdmin ? "/" : href}
               className={`relative px-4 py-2.5 text-sm font-medium tracking-wide transition-default focus-ring ${
                 activeLink === label || (label === "Admin" && isAdmin)
                   ? "text-[#F5F5F7] after:absolute after:bottom-0 after:left-4 after:right-4 after:h-[2px] after:bg-[#F5F5F7]"
@@ -93,7 +93,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
             onClick={onBookClick}
             className="hidden md:block min-h-[44px] rounded-sm bg-[#D3AF37] px-6 py-2.5 text-sm font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] active:scale-[0.98]"
           >
-            Book Now
+            Zakažite termin
           </button>
 
           <button
@@ -125,7 +125,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              href={label === "Home" && isAdmin ? "/" : href}
+              href={label === "Početak" && isAdmin ? "/" : href}
               className={`px-4 py-3 text-base font-medium focus-ring transition-default border-l-2 ${
                 activeLink === label
                   ? "border-[#F5F5F7] bg-[#1A1A1F] text-[#F5F5F7]"
@@ -147,7 +147,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
             }}
             className="mx-4 mt-3 min-h-[48px] rounded-sm bg-[#D3AF37] px-6 py-3.5 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A]"
           >
-            Book Now
+            Zakažite termin
           </button>
         </nav>
       </div>

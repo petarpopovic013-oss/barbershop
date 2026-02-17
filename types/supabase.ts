@@ -51,6 +51,19 @@ export type CreateReservationPayload = {
   notes?: string;
 };
 
+export type BarberAvailability = {
+  id: number;
+  barber_id: number;
+  date: string; // YYYY-MM-DD
+  is_available: boolean;
+  working_hours_start: string; // HH:MM:SS
+  working_hours_end: string; // HH:MM:SS
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type BarberAvailabilityInput = Omit<BarberAvailability, 'id' | 'created_at' | 'updated_at'>;
+
 /**
  * API Response types
  */

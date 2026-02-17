@@ -1,18 +1,18 @@
 import Link from "next/link";
 
 const menuLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "Our barbers" },
-  { href: "#prices", label: "Our prices" },
-  { href: "#visit", label: "Visit us" },
-  { href: "#gallery", label: "Our work" },
-  { href: "#contact", label: "Contact" },
+  { href: "#home", label: "Početak" },
+  { href: "#about", label: "Naši berberi" },
+  { href: "#prices", label: "Naše cene" },
+  { href: "#visit", label: "Posetite nas" },
+  { href: "#gallery", label: "Naš rad" },
+  { href: "#contact", label: "Kontakt" },
 ];
 
 const quickLinks = [
-  { href: "#", label: "Careers" },
-  { href: "#", label: "Privacy" },
-  { href: "#contact", label: "Location & contact" },
+  { href: "#", label: "Karijera" },
+  { href: "#", label: "Privatnost" },
+  { href: "#contact", label: "Lokacija i kontakt" },
 ];
 
 export function Footer({ onBookClick }: { onBookClick: () => void }) {
@@ -27,7 +27,7 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
           {/* Brand & Contact */}
           <div>
             <p className="text-2xl font-bold tracking-tight text-[#F5F5F7]">
-              Sharp Cut
+              RSBARBERSHOP
             </p>
             <p className="mt-4 text-base text-[#A1A1A6] leading-relaxed">
               Example Street 1<br />
@@ -60,7 +60,7 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
           {/* Menu */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
-              Menu
+              Meni
             </h3>
             <ul className="mt-5 space-y-3">
               {menuLinks.map(({ href, label }) => (
@@ -79,7 +79,7 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
           {/* Quick Links */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
-              Quick links
+              Brzi linkovi
             </h3>
             <ul className="mt-5 space-y-3">
               {quickLinks.map(({ href, label }) => (
@@ -98,18 +98,18 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
           {/* Hours & CTA */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#F5F5F7]">
-              Hours
+              Radno vreme
             </h3>
             <p className="mt-5 text-base text-[#A1A1A6] leading-relaxed">
-              Mon–Fri 9:00–20:00<br />
-              Sat 9:00–16:00
+              Pon–Pet 9:00–20:00<br />
+              Sub 9:00–16:00
             </p>
             <button
               type="button"
               onClick={onBookClick}
               className="mt-8 w-full min-h-[48px] rounded-sm bg-[#D3AF37] py-3.5 px-6 text-base font-semibold text-[#0A0A0B] transition-default focus-ring hover:bg-[#E0C04A] sm:w-auto"
             >
-              Book appointment
+              Zakažite termin
             </button>
           </div>
         </div>
@@ -117,7 +117,7 @@ export function Footer({ onBookClick }: { onBookClick: () => void }) {
         {/* Copyright */}
         <div className="mt-16 border-t border-[#2A2A2F] pt-8">
           <p className="text-center text-sm text-[#6B6B70]">
-            © Sharp Cut Novi Sad. All rights reserved.
+            © RSBARBERSHOP Novi Sad. Sva prava zadržana.
           </p>
         </div>
       </div>

@@ -61,6 +61,8 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createSupabaseServerClient();
+    
+    // Fetch reservations
     const { data: reservations, error } = await supabase
       .from("Reservations")
       .select("start_time, end_time")
@@ -76,9 +78,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check availability for this date
+    const dateOnly = dayStart.slice(0, 10); // Extract YYYY-MM-DD
+    const { data: availability } = await supabase
+      .from("barber_availability")
+      .select("is_available")
+      .eq("barber_id", barberId)
+      .eq("date", dateOnly)
+      .maybeSingle();
+
+    // If no availability record exists, assume available (default behavior)
+    const isAvailable = availability?.is_available ?? true;
+
     return NextResponse.json({
       ok: true,
       reservations: reservations ?? [],
+      isAvailable,
     });
   } catch (error) {
     console.error("Error in GET /api/reservations:", error);
@@ -108,6 +123,8 @@ const reservationSchema = z.object({
   endTime: z.string().refine((s) => !Number.isNaN(Date.parse(s)), {
     message: "End time must be a valid ISO datetime",
   }),
+  bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional(),
+  bookingTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:MM").optional(),
   notes: z.string().optional(),
 });
 
@@ -151,6 +168,26 @@ export async function POST(request: NextRequest) {
 
     const payload: ReservationPayload = validationResult.data;
     const supabase = createSupabaseServerClient();
+
+    // Step 0: Check if barber is available on the selected date
+    const bookingDate = payload.bookingDate || new Date(payload.startTime).toISOString().slice(0, 10);
+    const { data: availability } = await supabase
+      .from("barber_availability")
+      .select("is_available")
+      .eq("barber_id", payload.barberId)
+      .eq("date", bookingDate)
+      .maybeSingle();
+
+    // If availability record exists and is_available is false, reject the booking
+    if (availability && !availability.is_available) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "Izabrani berber nije dostupan na ovaj datum. Molimo izaberite drugi dan.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Step 1: Create or find customer in Customer table
     let customerId: number | null = null;
@@ -259,6 +296,49 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+    }
+
+    // Step 3: Send reservation data to N8N webhook for email automation
+    const webhookUrl = process.env.N8N_WEBHOOK;
+    if (webhookUrl) {
+      // Fetch barber and service names for the webhook payload
+      const [{ data: barberData }, { data: serviceData }] = await Promise.all([
+        supabase.from("Barbers").select("name").eq("id", payload.barberId).single(),
+        supabase.from("Services").select("service_name, duration_minutes, price_rsd").eq("id", payload.serviceId).single(),
+      ]);
+
+      // Compute end time from raw strings (no Date objects, no timezone conversion)
+      const durationMin = serviceData?.duration_minutes ?? 30;
+      let endTimeLocal = payload.bookingTime ?? "";
+      if (payload.bookingTime) {
+        const [hh, mm] = payload.bookingTime.split(":").map(Number);
+        const totalMin = hh * 60 + mm + durationMin;
+        const endHH = String(Math.floor(totalMin / 60) % 24).padStart(2, "0");
+        const endMM = String(totalMin % 60).padStart(2, "0");
+        endTimeLocal = `${endHH}:${endMM}`;
+      }
+
+      const webhookPayload = {
+        reservationId: data.id,
+        barber: barberData?.name ?? `Barber #${payload.barberId}`,
+        service: serviceData?.service_name ?? `Service #${payload.serviceId}`,
+        durationMinutes: durationMin,
+        priceRsd: serviceData?.price_rsd ?? null,
+        customerName: payload.customerName,
+        customerPhone: payload.customerPhone,
+        customerEmail: payload.customerEmail ?? null,
+        // Raw strings from frontend - no Date objects, impossible to convert to UTC
+        date: payload.bookingDate ?? null,
+        startTime: payload.bookingTime ?? null,
+        endTime: endTimeLocal || null,
+        notes: payload.notes ?? null,
+      };
+
+      fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(webhookPayload),
+      }).catch((err) => console.error("N8N webhook error:", err));
     }
 
     return NextResponse.json(
