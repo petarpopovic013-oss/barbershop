@@ -19,10 +19,10 @@ export const metadata: Metadata = {
   keywords: ["barbershop", "frizer", "šišanje", "brada", "Kać", "Novi Sad"],
   icons: {
     icon: [
-      { url: "/favico.png", type: "image/png" },
+      { url: "/favicon.ico", type: "image/png" },
     ],
-    shortcut: "/favico.png",
-    apple: "/favico.png",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   openGraph: {
     title: "RSBARBERSHOP",
