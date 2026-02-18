@@ -20,7 +20,7 @@ const BARBERS = [
 
 function getTodayPlusNextFiveWorkingDays(): { id: string; label: string; date: Date; isToday: boolean }[] {
   const days: { id: string; label: string; date: Date; isToday: boolean }[] = [];
-  const dayNames = ["Nedelja", "Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"];
+  const dayNames = ["Ned", "Pon", "Uto", "Sre", "Čet", "Pet", "Sub"];
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Normalize to start of day
   const d = new Date(today); // Start from today
@@ -555,7 +555,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                       <button
                         type="button"
                         onClick={() => handleDaySelect(day)}
-                        className={`w-full border px-2 py-3 text-center text-[11px] font-medium transition-all duration-300 focus:outline-none focus-visible:outline-2 focus-visible:outline-[#ffffff] focus-visible:outline-offset-2 ${
+                        className={`w-full overflow-hidden border px-2 py-3 text-center text-[11px] font-medium transition-all duration-300 focus:outline-none focus-visible:outline-2 focus-visible:outline-[#ffffff] focus-visible:outline-offset-2 ${
                           selectedDay?.id === day.id
                             ? "border-[#ffffff] bg-[#ffffff] text-[#1a1a1a]"
                             : "border-white/10 text-white/80 hover:border-white/25 hover:bg-white/3"
