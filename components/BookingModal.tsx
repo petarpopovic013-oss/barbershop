@@ -70,11 +70,30 @@ function formatDayDate(d: Date): string {
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
 
+const SLOT_DURATION = 30;
+
+/** Segment order and labels for grouping services in the booking modal */
+const SERVICE_SEGMENT_ORDER = [
+  { id: "sisanje", label: "Šišanje" },
+  { id: "brada", label: "Brada" },
+  { id: "kombinacije", label: "Kombinacije" },
+  { id: "brijanje", label: "Brijanje" },
+  { id: "dodatno", label: "Dodatno" },
+] as const;
+
+function getServiceSegmentId(serviceName: string): string {
+  const n = serviceName.toLowerCase();
+  if (n.includes("šišanje") && n.includes("brada")) return "kombinacije";
+  if (n.includes("šišanje")) return "sisanje";
+  if (n === "brada") return "brada";
+  if (n.includes("brijanje")) return "brijanje";
+  return "dodatno";
+}
+
 type Service = {
   id: number;
   service_name: string;
   price_rsd: number;
-  duration_minutes: number;
   active: boolean;
 };
 
@@ -98,7 +117,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
   const [selectedBarber, setSelectedBarber] = useState<(typeof BARBERS)[0] | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayOption | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
   const [contactForm, setContactForm] = useState<ContactForm>(initialContactForm);
   const [reveal, setReveal] = useState(false);
   
@@ -292,7 +311,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
     setSelectedBarber(null);
     setSelectedDay(null);
     setSelectedTime(null);
-    setSelectedService(null);
+    setSelectedServiceIds([]);
     setContactForm(initialContactForm);
     setBookingError(null);
     setReservationId(null);
@@ -300,21 +319,57 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
     onClose();
   };
 
+  const selectedServices = useMemo(
+    () => services.filter((s) => selectedServiceIds.includes(s.id)),
+    [services, selectedServiceIds]
+  );
+  const totalPriceRsd = useMemo(
+    () => selectedServices.reduce((sum, s) => sum + Number(s.price_rsd ?? 0), 0),
+    [selectedServices]
+  );
+
+  /** Services grouped by segment in logical order; within each segment sorted by price then name */
+  const servicesBySegment = useMemo(() => {
+    const bySegment = new Map<string, Service[]>();
+    for (const seg of SERVICE_SEGMENT_ORDER) bySegment.set(seg.id, []);
+
+    const sorted = [...services].sort((a, b) => {
+      const priceA = Number(a.price_rsd ?? 0);
+      const priceB = Number(b.price_rsd ?? 0);
+      if (priceA !== priceB) return priceA - priceB;
+      return (a.service_name ?? "").localeCompare(b.service_name ?? "");
+    });
+
+    for (const service of sorted) {
+      const segId = getServiceSegmentId(service.service_name ?? "");
+      const list = bySegment.get(segId) ?? bySegment.get("dodatno") ?? [];
+      list.push(service);
+    }
+
+    return SERVICE_SEGMENT_ORDER.filter((seg) => (bySegment.get(seg.id)?.length ?? 0) > 0).map((seg) => ({
+      ...seg,
+      services: bySegment.get(seg.id) ?? [],
+    }));
+  }, [services]);
+
   const handleConfirmBooking = async () => {
-    if (!selectedBarber || !selectedDay || !selectedTime || !selectedService || !isContactValid) return;
+    if (!selectedBarber || !selectedDay || !selectedTime || selectedServiceIds.length === 0 || !isContactValid) return;
     setBookingLoading(true); setBookingError(null);
     try {
       const dateStr = `${selectedDay.id}T${selectedTime}:00`;
       const startDateTime = new Date(dateStr);
       const endDateTime = new Date(startDateTime);
-      endDateTime.setMinutes(endDateTime.getMinutes() + selectedService.duration_minutes);
-      
+      endDateTime.setMinutes(endDateTime.getMinutes() + SLOT_DURATION);
+
       const email = contactForm.email?.trim();
       const payload = {
-        barberId: Number(selectedBarber.id), serviceId: Number(selectedService.id),
+        barberId: Number(selectedBarber.id),
+        serviceIds: selectedServiceIds,
         customerName: `${contactForm.name.trim()} ${contactForm.surname.trim()}`.trim(),
-        customerPhone: contactForm.mobile.trim(), ...(email ? { customerEmail: email } : {}),
-        startTime: startDateTime.toISOString(), endTime: endDateTime.toISOString(),
+        customerPhone: contactForm.mobile.trim(),
+        ...(email ? { customerEmail: email } : {}),
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
         bookingDate: selectedDay.id,
         bookingTime: selectedTime,
       };
@@ -402,7 +457,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
-          <h2 id="booking-modal-title" className="font-heading text-[22px] text-white">
+          <h2 id="booking-modal-title" className="font-heading text-[26px] text-white md:text-[28px]">
             ZAKAŽI TERMIN
           </h2>
           <button
@@ -438,7 +493,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
           {/* Step 1: Barber Selection */}
           {step === 1 && (
             <div>
-              <h3 className="font-heading mb-5 text-[16px] text-white/70">IZABERITE BERBERA</h3>
+              <h3 className="font-heading mb-5 text-[18px] text-white/70 md:text-[20px]">IZABERITE BERBERA</h3>
               <ul className="grid gap-3 sm:grid-cols-2">
                 {BARBERS.map((barber) => (
                   <li key={barber.id}>
@@ -468,7 +523,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
           {/* Step 2: Day & Time Selection */}
           {step === 2 && (
             <div>
-              <h3 className="font-heading mb-4 text-[16px] text-white/70">IZABERITE DAN</h3>
+              <h3 className="font-heading mb-4 text-[18px] text-white/70 md:text-[20px]">IZABERITE DAN</h3>
 
               {availabilityLoading ? (
                 <div className="flex items-center justify-center py-10">
@@ -509,7 +564,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
 
               {selectedDay && availableTimeSlots.length > 0 && (
                 <>
-                  <h3 className="font-heading mb-4 text-[16px] text-white/70">IZABERITE VREME</h3>
+                  <h3 className="font-heading mb-4 text-[18px] text-white/70 md:text-[20px]">IZABERITE VREME</h3>
                   <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                     {availableTimeSlots.map((time) => (
                       <li key={time}>
@@ -532,10 +587,10 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
             </div>
           )}
 
-          {/* Step 3: Service Selection */}
+          {/* Step 3: Service Selection (multi-select) */}
           {step === 3 && (
             <div>
-              <h3 className="font-heading mb-5 text-[16px] text-white/70">IZABERITE USLUGU</h3>
+              <h3 className="font-heading mb-5 text-[18px] text-white/70 md:text-[20px]">IZABERITE USLUGE</h3>
               {servicesLoading && (
                 <div className="flex items-center justify-center py-10">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#D4AF37] border-t-transparent" />
@@ -550,29 +605,56 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                 </div>
               )}
               {!servicesLoading && !servicesError && services.length > 0 && (
-                <ul className="space-y-2">
-                  {services.map((service) => (
-                    <li key={service.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedService(service)}
-                        className={`flex w-full items-center justify-between border p-4 text-left transition-all duration-300 focus:outline-none focus-visible:outline-2 focus-visible:outline-[#D4AF37] focus-visible:outline-offset-2 ${
-                          selectedService?.id === service.id
-                            ? "border-[#D4AF37] bg-[#D4AF37]/10"
-                            : "border-white/10 hover:border-white/25 hover:bg-white/3"
-                        }`}
-                      >
-                        <span>
-                          <span className="block text-[13px] font-medium text-white">{service.service_name}</span>
-                          <span className="text-[11px] text-white/40">{service.duration_minutes} min</span>
-                        </span>
-                        <span className={`text-[14px] font-semibold ${selectedService?.id === service.id ? "text-[#D4AF37]" : "text-white/70"}`}>
-                          {service.price_rsd} RSD
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <div className="space-y-6">
+                    {servicesBySegment.map((segment) => (
+                      <section key={segment.id} aria-labelledby={`segment-${segment.id}`}>
+                        <h4 id={`segment-${segment.id}`} className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-[#D4AF37]/90">
+                          {segment.label}
+                        </h4>
+                        <ul className="space-y-2">
+                          {segment.services.map((service) => {
+                            const isChecked = selectedServiceIds.includes(service.id);
+                            return (
+                              <li key={service.id}>
+                                <label
+                                  className={`flex w-full cursor-pointer items-center justify-between border p-4 text-left transition-all duration-300 focus-within:outline-2 focus-within:outline-[#D4AF37] focus-within:outline-offset-2 ${
+                                    isChecked ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-white/10 hover:border-white/25 hover:bg-white/3"
+                                  }`}
+                                >
+                                  <span className="flex items-center gap-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        setSelectedServiceIds((prev) =>
+                                          prev.includes(service.id)
+                                            ? prev.filter((id) => id !== service.id)
+                                            : [...prev, service.id]
+                                        );
+                                      }}
+                                      className="h-4 w-4 shrink-0 rounded border-white/30 bg-white/5 text-[#D4AF37] focus:ring-[#D4AF37]"
+                                    />
+                                    <span className="block text-[13px] font-medium text-white">{service.service_name}</span>
+                                  </span>
+                                  <span className={`text-[14px] font-semibold ${isChecked ? "text-[#D4AF37]" : "text-white/70"}`}>
+                                    {service.price_rsd} RSD
+                                  </span>
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    ))}
+                  </div>
+                  {selectedServiceIds.length > 0 && (
+                    <div className="mt-5 flex justify-end border-t border-white/10 pt-4">
+                      <span className="text-[11px] tracking-widest text-white/40 mr-2">UKUPNO:</span>
+                      <span className="text-[18px] font-bold text-[#D4AF37]">{totalPriceRsd} RSD</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -580,7 +662,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
           {/* Step 4: Confirmation & Contact */}
           {step === 4 && (
             <div>
-              <h3 className="font-heading mb-5 text-[16px] text-white/70">POTVRDITE REZERVACIJU</h3>
+              <h3 className="font-heading mb-5 text-[18px] text-white/70 md:text-[20px]">POTVRDITE REZERVACIJU</h3>
 
               {/* Summary Card */}
               <div className="mb-6 border border-white/10 bg-white/3 p-5">
@@ -598,17 +680,19 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                     <span className="font-medium text-white">{selectedTime}</span>
                   </div>
                   <div className="flex justify-between text-[12px]">
-                    <span className="text-white/40">Usluga</span>
-                    <span className="font-medium text-white">{selectedService?.service_name}</span>
+                    <span className="text-white/40">Usluge</span>
+                    <span className="font-medium text-white text-right max-w-[60%]">
+                      {selectedServices.map((s) => s.service_name).join(", ")}
+                    </span>
                   </div>
                 </div>
                 <div className="mt-4 border-t border-white/10 pt-3 flex justify-between items-center">
                   <span className="text-[11px] tracking-widest text-white/40">UKUPNO</span>
-                  <span className="text-[18px] font-bold text-[#D4AF37]">{selectedService?.price_rsd ?? 0} RSD</span>
+                  <span className="text-[18px] font-bold text-[#D4AF37]">{totalPriceRsd} RSD</span>
                 </div>
               </div>
 
-              <h4 className="font-heading mb-4 text-[15px] text-white/70">VAŠI PODACI</h4>
+              <h4 className="font-heading mb-4 text-[17px] text-white/70 md:text-[18px]">VAŠI PODACI</h4>
               <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
                 <label>
                   <span className="mb-1.5 block text-[11px] tracking-wide text-white/40">Ime</span>
@@ -636,7 +720,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                     type="tel"
                     value={contactForm.mobile}
                     onChange={updateContact("mobile")}
-                    placeholder="+381..."
+                    placeholder="+381xxxxxxxxx"
                     className="w-full border border-white/10 bg-white/3 px-3 py-2.5 text-[13px] text-white placeholder:text-white/20 transition-colors focus:border-[#D4AF37] focus:outline-none"
                   />
                 </label>
@@ -646,7 +730,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                     type="email"
                     value={contactForm.email}
                     onChange={updateContact("email")}
-                    placeholder="email@example.com"
+                    placeholder="vasemail@email.com"
                     className="w-full border border-white/10 bg-white/3 px-3 py-2.5 text-[13px] text-white placeholder:text-white/20 transition-colors focus:border-[#D4AF37] focus:outline-none"
                   />
                 </label>
@@ -669,7 +753,7 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                   </svg>
                 </div>
               </div>
-              <h3 className="font-heading mb-2 text-[24px] text-white">POTVRĐENO</h3>
+              <h3 className="font-heading mb-2 text-[28px] text-white md:text-[32px]">POTVRĐENO</h3>
               <p className="mb-6 text-[13px] text-white/40">Vidimo se uskoro.</p>
               <div className="mx-auto max-w-xs border border-white/10 bg-white/3 p-5 text-left">
                 <p className="text-[10px] tracking-wide text-white/20 mb-3">ID: {reservationId}</p>
@@ -683,12 +767,14 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
                     <span className="text-white">{selectedDay ? `${selectedDay.label}, ${formatDayDate(selectedDay.date)} u ${selectedTime}` : ""}</span>
                   </div>
                   <div className="flex justify-between text-[12px]">
-                    <span className="text-white/40">Usluga</span>
-                    <span className="text-white">{selectedService?.service_name}</span>
+                    <span className="text-white/40">Usluge</span>
+                    <span className="text-white text-right max-w-[60%]">
+                      {selectedServices.map((s) => s.service_name).join(", ")}
+                    </span>
                   </div>
                   <div className="border-t border-white/10 pt-2 flex justify-between text-[12px]">
                     <span className="text-white/40">Cena</span>
-                    <span className="font-semibold text-[#D4AF37]">{selectedService?.price_rsd} RSD</span>
+                    <span className="font-semibold text-[#D4AF37]">{totalPriceRsd} RSD</span>
                   </div>
                 </div>
               </div>
@@ -712,10 +798,10 @@ export function BookingModal({ open, onClose }: { open: boolean; onClose: () => 
             <button
               type="button"
               onClick={() => {
-                if ((step === 1 && selectedBarber) || (step === 2 && selectedDay && selectedTime) || (step === 3 && selectedService))
+                if ((step === 1 && selectedBarber) || (step === 2 && selectedDay && selectedTime) || (step === 3 && selectedServiceIds.length > 0))
                   setStep((s) => (s + 1) as Step);
               }}
-              disabled={(step === 1 && !selectedBarber) || (step === 2 && (!selectedDay || !selectedTime)) || (step === 3 && !selectedService)}
+              disabled={(step === 1 && !selectedBarber) || (step === 2 && (!selectedDay || !selectedTime)) || (step === 3 && selectedServiceIds.length === 0)}
               className="px-6 py-2.5 text-[11px] font-bold tracking-[0.15em] bg-[#D4AF37] text-[#1a1a1a] transition-all duration-300 hover:bg-[#c9a430] disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
             >
               DALJE

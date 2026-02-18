@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 export function Hero({
@@ -10,6 +11,15 @@ export function Hero({
   onBookClick: () => void;
   children?: ReactNode;
 }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const t = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setLoaded(true));
+    });
+    return () => cancelAnimationFrame(t);
+  }, []);
+
   return (
     <section
       id="home"
@@ -22,19 +32,26 @@ export function Hero({
         muted
         loop
         playsInline
-        className="absolute inset-0 h-full w-full object-cover grayscale"
+        className={`absolute inset-0 h-full w-full object-cover grayscale transition-opacity duration-[2s] ${loaded ? "opacity-100" : "opacity-0"}`}
       >
         <source src="/hero.mp4" type="video/mp4" />
       </video>
-      
-      {/* Dark overlay for contrast - more intense */}
+
+      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/60" />
-      
-      {/* Content - centered vertically and horizontally */}
+
+      {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 text-center">
-        
-        {/* Logo Image - responsive sizing (15% smaller) */}
-        <div className="relative w-[680px] h-[213px] sm:w-[850px] sm:h-[264px] md:w-[1020px] md:h-[315px] lg:w-[1275px] lg:h-[391px] max-w-[90vw]">
+
+        {/* Logo - animated reveal */}
+        <div
+          className={`relative w-[680px] h-[213px] sm:w-[850px] sm:h-[264px] md:w-[1020px] md:h-[315px] lg:w-[1275px] lg:h-[391px] max-w-[90vw] transition-all duration-[1.2s] cubic-bezier(0.16,1,0.3,1) ${
+            loaded
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-[0.92] translate-y-5"
+          }`}
+          style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+        >
           <Image
             src="/logobarber.png"
             alt="BARBERSHOP EST. 2020"
@@ -44,17 +61,21 @@ export function Hero({
             sizes="(max-width: 640px) 90vw, (max-width: 768px) 90vw, (max-width: 1024px) 90vw, 1275px"
           />
         </div>
-        
-        {/* CTA Button - white bg default, gold on hover */}
+
+        {/* CTA Button - slides up after logo */}
         <button
           type="button"
           onClick={onBookClick}
-          className="mt-6 cursor-pointer md:mt-8 font-bold rounded-md px-8 py-4 bg-white border border-white text-[#1a1a1a] text-[11px] tracking-[0.2em] uppercase transition-all duration-300 hover:bg-[#D4AF37] hover:border-[#D4AF37]"
+          className={`mt-[18px] cursor-pointer md:mt-6 font-bold rounded-full px-12 py-6 bg-white border border-white text-[#1a1a1a] text-[15px] tracking-[0.2em] uppercase transition-colors duration-150 hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-white ${
+            loaded
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
         >
           ZAKAŽI TERMIN
         </button>
       </div>
-      
+
       {children}
     </section>
   );

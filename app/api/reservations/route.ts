@@ -104,13 +104,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
+const SLOT_DURATION = 30;
+
 /**
  * Validation schema for reservation payload
- * Using existing database schema with bigint IDs
+ * Using existing database schema with bigint IDs; service_ids stores selected services.
  */
 const reservationSchema = z.object({
   barberId: z.coerce.number().int().positive("Barber ID must be a positive integer"),
-  serviceId: z.coerce.number().int().positive("Service ID must be a positive integer"),
+  serviceIds: z.array(z.coerce.number().int().positive()).min(1, "At least one service is required"),
   customerName: z.string().trim().min(1, "Customer name is required"),
   customerPhone: z.string().trim().min(1, "Customer phone is required"),
   customerEmail: z.union([
@@ -137,7 +139,7 @@ type ReservationPayload = z.infer<typeof reservationSchema>;
  * Expected JSON body:
  * {
  *   barberId: number (bigint ID from Barbers table),
- *   serviceId: number (bigint ID from Services table),
+ *   serviceIds: number[] (array of Service IDs),
  *   customerName: string,
  *   customerPhone: string,
  *   customerEmail?: string,
@@ -255,12 +257,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 2: Insert reservation with customer_id link
+    // Step 2: Insert reservation with customer_id and service_ids
     const { data, error } = await supabase
       .from("Reservations")
       .insert({
         barber_id: payload.barberId,
-        service_id: payload.serviceId,
+        service_id: payload.serviceIds[0] ?? null,
+        service_ids: payload.serviceIds,
         customer_id: customerId,
         customer_name: payload.customerName,
         customer_phone: payload.customerPhone,
@@ -302,17 +305,19 @@ export async function POST(request: NextRequest) {
     const webhookUrl = process.env.N8N_WEBHOOK;
     if (webhookUrl) {
       // Fetch barber and service names for the webhook payload
-      const [{ data: barberData }, { data: serviceData }] = await Promise.all([
-        supabase.from("Barbers").select("name").eq("id", payload.barberId).single(),
-        supabase.from("Services").select("service_name, duration_minutes, price_rsd").eq("id", payload.serviceId).single(),
-      ]);
+      const barberPromise = supabase.from("Barbers").select("name").eq("id", payload.barberId).single();
+      const servicesPromise = payload.serviceIds.length > 0
+        ? supabase.from("Services").select("service_name, price_rsd").in("id", payload.serviceIds)
+        : Promise.resolve({ data: [] });
+      const [{ data: barberData }, { data: servicesData }] = await Promise.all([barberPromise, servicesPromise]);
 
-      // Compute end time from raw strings (no Date objects, no timezone conversion)
-      const durationMin = serviceData?.duration_minutes ?? 30;
+      const serviceNames = (servicesData ?? []).map((s: { service_name: string }) => s.service_name).join(", ");
+      const totalPriceRsd = (servicesData ?? []).reduce((sum: number, s: { price_rsd: number }) => sum + Number(s.price_rsd ?? 0), 0);
+
       let endTimeLocal = payload.bookingTime ?? "";
       if (payload.bookingTime) {
         const [hh, mm] = payload.bookingTime.split(":").map(Number);
-        const totalMin = hh * 60 + mm + durationMin;
+        const totalMin = hh * 60 + mm + SLOT_DURATION;
         const endHH = String(Math.floor(totalMin / 60) % 24).padStart(2, "0");
         const endMM = String(totalMin % 60).padStart(2, "0");
         endTimeLocal = `${endHH}:${endMM}`;
@@ -321,9 +326,9 @@ export async function POST(request: NextRequest) {
       const webhookPayload = {
         reservationId: data.id,
         barber: barberData?.name ?? `Barber #${payload.barberId}`,
-        service: serviceData?.service_name ?? `Service #${payload.serviceId}`,
-        durationMinutes: durationMin,
-        priceRsd: serviceData?.price_rsd ?? null,
+        service: serviceNames || `Services`,
+        durationMinutes: SLOT_DURATION,
+        priceRsd: totalPriceRsd || null,
         customerName: payload.customerName,
         customerPhone: payload.customerPhone,
         customerEmail: payload.customerEmail ?? null,

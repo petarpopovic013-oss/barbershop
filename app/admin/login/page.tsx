@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#1a1a1a] px-4">
       <div className="w-full max-w-sm border border-white/10 bg-[#222] p-8 shadow-2xl">
-        <h1 className="mb-8 text-center font-heading text-3xl text-white">
+        <h1 className="mb-8 text-center font-heading text-4xl text-white md:text-5xl">
           ADMIN PRIJAVA
         </h1>
         <form onSubmit={handleSubmit} className="space-y-5">

@@ -8,7 +8,6 @@ import { createSupabaseServerClient } from "@/lib/supabaseServer";
  * Uses existing Services table with columns:
  * - id (bigint)
  * - service_name (text)
- * - duration_minutes (integer)
  * - price_rsd (bigint)
  * - active (boolean)
  */
@@ -18,7 +17,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("Services")
-      .select("id, service_name, price_rsd, duration_minutes, active")
+      .select("id, service_name, price_rsd, active")
       .eq("active", true)
       .order("service_name", { ascending: true });
 

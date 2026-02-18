@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-// Scissors icon for divider
 function ScissorsIcon({ className = "" }: { className?: string }) {
   return (
-    <svg 
-      className={className} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
       strokeWidth="1.5"
-      strokeLinecap="round" 
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <circle cx="6" cy="6" r="3" />
@@ -45,58 +44,82 @@ export function Barbers() {
     <section
       ref={sectionRef}
       id="tim"
-      className="bg-[#1a1a1a] py-20 md:py-28 lg:py-32"
+      className="bg-[#1a1a1a] py-20 md:py-28 lg:py-32 overflow-hidden"
       aria-labelledby="team-heading"
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-          
-          {/* Left - Image with arch top (rounded-t-full) */}
-          <div 
-            className={`transition-all duration-700 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+
+          {/* Left - Image: slides in from left */}
+          <div
+            className={`transition-all duration-[1s] ${
+              inView
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-16"
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
           >
-            <div className="relative aspect-[3/4] overflow-hidden rounded-t-[50%] mx-auto max-w-[380px] lg:max-w-none">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-t-[50%] mx-auto max-w-[380px] lg:max-w-none group">
               <Image
                 src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=800&fit=crop"
                 alt="Profesionalni berber na poslu"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
             </div>
           </div>
-          
-          {/* Right - Text content */}
-          <div 
-            className={`text-center lg:text-left transition-all duration-700 delay-150 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+
+          {/* Right - Text: slides in from right */}
+          <div
+            className={`text-center lg:text-left transition-all duration-[1s] delay-200 ${
+              inView
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-16"
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
           >
-            {/* Scissors divider */}
+            {/* Scissors divider with line-grow animation */}
             <div className="flex items-center justify-center lg:justify-start gap-3 mb-5">
-              <span className="h-[1px] w-10 bg-white/60" />
-              <ScissorsIcon className="h-4 w-4 text-white/60" />
-              <span className="h-[1px] w-10 bg-white/60" />
+              <span
+                className={`h-[1px] w-10 bg-white/60 origin-right transition-transform duration-700 delay-500 ${inView ? "scale-x-100" : "scale-x-0"}`}
+              />
+              <ScissorsIcon
+                className={`h-4 w-4 text-white/60 transition-all duration-500 delay-700 ${inView ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"}`}
+              />
+              <span
+                className={`h-[1px] w-10 bg-white/60 origin-left transition-transform duration-700 delay-500 ${inView ? "scale-x-100" : "scale-x-0"}`}
+              />
             </div>
-            
-            {/* Heading */}
+
             <h2
               id="team-heading"
-              className="font-heading text-[42px] text-white md:text-[48px]"
+              className={`font-heading text-[48px] text-white md:text-[56px] lg:text-[64px] transition-all duration-[0.9s] delay-300 ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+              }`}
+              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
             >
               NAŠ TIM
             </h2>
-            
-            {/* Subheading - italic style */}
-            <p className="mt-5 text-[16px] font-medium italic text-white/90 md:text-[18px]">
+
+            {/* Gold underline grows in */}
+            <span className={`block h-[3px] w-16 bg-[#D4AF37] mt-3 origin-left transition-transform duration-700 delay-500 mx-auto lg:mx-0 ${inView ? "scale-x-100" : "scale-x-0"}`} />
+
+            <p
+              className={`mt-5 text-[16px] font-medium italic text-white/90 md:text-[18px] transition-all duration-700 delay-[500ms] ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
+            >
               Mladi tim, sveža energija i preciznost u svakom potezu.
             </p>
-            
-            {/* Body text */}
-            <p className="mt-4 text-[14px] leading-[1.8] text-white/70 md:text-[15px]">
+
+            <p
+              className={`mt-4 text-[14px] leading-[1.8] text-white/70 md:text-[15px] transition-all duration-700 delay-[650ms] ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
+            >
               Kombinujemo znanje, ambiciju i savremene trendove, stvarajući balans tradicije i modernog stila. Svakom klijentu pristupamo individualno, sa fokusom na detalje, stil i vrhunski rezultat.
             </p>
           </div>

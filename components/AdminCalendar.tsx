@@ -9,11 +9,12 @@ const HOUR_END = 20;
 const SLOT_MINUTES = 30;
 
 type Barber = { id: number; name: string };
-type Service = { id: number; service_name: string; duration_minutes: number; price_rsd: number };
+type Service = { id: number; service_name: string; price_rsd: number };
 type Reservation = {
   id: number;
   barber_id: number;
-  service_id: number;
+  service_id: number | null;
+  service_ids: number[] | null;
   customer_name: string;
   customer_phone: string;
   customer_email?: string;
@@ -51,7 +52,13 @@ function dayColumnHeightPx(): number { return (HOUR_END - HOUR_START) * 60 * pix
 export function AdminCalendar({ barbers, services, reservations, dateStr, barberFilter, fetchError }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedReservation, setSelectedReservation] = useState<{ r: Reservation; service?: Service; barber?: Barber } | null>(null);
+  const SLOT_DURATION = 30;
+  const [selectedReservation, setSelectedReservation] = useState<{
+    r: Reservation;
+    services: Service[];
+    totalPriceRsd: number;
+    barber?: Barber;
+  } | null>(null);
 
   const date = new Date(dateStr + "T12:00:00");
   const dayLabel = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" });
@@ -198,13 +205,26 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
                       <div key={barber.id} className="relative border-r border-[#2A2A2F] last:border-r-0"
                         style={{ gridColumn: colIndex + 2, gridRow: "2 / -1", minHeight: `${dayColumnHeightPx()}px`, overflow: "visible" }}>
                         {colReservations.map((r) => {
-                          const svc = serviceMap[r.service_id];
+                          const ids = (r.service_ids && r.service_ids.length > 0) ? r.service_ids : (r.service_id != null ? [r.service_id] : []);
+                          const reservationServices = ids.map((id) => serviceMap[id]).filter(Boolean) as Service[];
+                          const serviceLabel = reservationServices.length > 0
+                            ? reservationServices.map((s) => s.service_name).join(", ")
+                            : "Usluga";
                           return (
-                            <button key={r.id} type="button" onClick={() => setSelectedReservation({ r, service: svc, barber })}
+                            <button
+                              key={r.id}
+                              type="button"
+                              onClick={() => setSelectedReservation({
+                                r,
+                                services: reservationServices,
+                                totalPriceRsd: reservationServices.reduce((sum, s) => sum + Number(s.price_rsd ?? 0), 0),
+                                barber,
+                              })}
                               className="admin-reservation-block absolute left-1.5 right-1.5 rounded-lg border border-[#D3AF37]/40 bg-[#D3AF37]/15 px-3 py-2 text-left text-xs transition-all hover:border-[#D3AF37]/70 hover:bg-[#D3AF37]/25 focus-ring"
-                              style={getBlockStyle(r)}>
+                              style={getBlockStyle(r)}
+                            >
                               <span className="block truncate font-semibold text-[#F5F5F7]">{r.customer_name || r.customer_phone || "—"}</span>
-                              <span className="block truncate text-[#A1A1A6]">{svc?.service_name ?? "Service"}</span>
+                              <span className="block truncate text-[#A1A1A6]">{serviceLabel}</span>
                               <span className="block truncate text-[10px] text-[#6B6B70]">{getLocalTimeString(r.start_time)}–{getLocalTimeString(r.end_time)}</span>
                             </button>
                           );
@@ -279,11 +299,13 @@ export function AdminCalendar({ barbers, services, reservations, dateStr, barber
                   <dd className="mt-1 text-[#F5F5F7]">{selectedReservation.barber?.name ?? "—"}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Usluga</dt>
+                  <dt className="text-xs font-medium uppercase tracking-wider text-[#6B6B70]">Usluge</dt>
                   <dd className="mt-1 text-[#F5F5F7]">
-                    {selectedReservation.service?.service_name ?? "—"}
-                    {selectedReservation.service && (
-                      <span className="ml-1 text-[#A1A1A6]">({selectedReservation.service.duration_minutes} min · {selectedReservation.service.price_rsd} RSD)</span>
+                    {selectedReservation.services.length > 0
+                      ? selectedReservation.services.map((s) => s.service_name).join(", ")
+                      : "—"}
+                    {selectedReservation.services.length > 0 && (
+                      <span className="ml-1 text-[#A1A1A6]">({SLOT_DURATION} min · {selectedReservation.totalPriceRsd} RSD)</span>
                     )}
                   </dd>
                 </div>

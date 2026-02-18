@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-// Icons matching PNG design
 function PhoneIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -57,100 +56,115 @@ export function Location() {
     return () => observer.disconnect();
   }, []);
 
+  const contactItems = [
+    { href: "tel:+38165345678", icon: PhoneIcon, text: "+381 65 345 678" },
+    { href: "mailto:rsbarbershop@gmail.com", icon: EmailIcon, text: "rsbarbershop@gmail.com" },
+    { href: "https://instagram.com/rs_barbershop", icon: InstagramIcon, text: "@rs_barbershop", external: true },
+  ];
+
   return (
     <section
       ref={sectionRef}
       id="kontakt"
-      className="bg-[#1a1a1a] py-16 md:py-20 lg:py-24"
+      className="bg-[#1a1a1a] py-16 md:py-20 lg:py-24 overflow-hidden"
       aria-labelledby="contact-heading"
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
-          
+
           {/* Left column - Image and Hours */}
-          <div 
-            className={`transition-all duration-700 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          <div
+            className={`transition-all duration-[1s] ${
+              inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
           >
-            {/* Image */}
-            <div className="relative aspect-[4/3] overflow-hidden mb-8">
+            {/* Image with hover zoom */}
+            <div className="relative aspect-[4/3] overflow-hidden mb-8 group">
               <Image
                 src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop"
                 alt="Enterijer barbershopa"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
             </div>
-            
-            {/* POSETITE NAS */}
+
             <h2
               id="contact-heading"
-              className="font-heading text-[24px] text-white mb-5 md:text-[28px]"
+              className={`font-heading text-[28px] text-white mb-5 md:text-[32px] lg:text-[36px] transition-all duration-700 delay-300 ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
             >
               POSETITE NAS
             </h2>
-            
+            <span className={`block h-[3px] w-12 bg-[#D4AF37] mb-5 origin-left transition-transform duration-700 delay-500 ${inView ? "scale-x-100" : "scale-x-0"}`} />
+
             <div className="space-y-3 text-[14px] text-white/80 md:text-[15px]">
-              <div>
-                <p className="font-medium text-white">Ponedeljak - Petak</p>
-                <p>10h - 19h</p>
-              </div>
-              <div>
-                <p className="font-medium text-white">Subota</p>
-                <p>10h - 19h</p>
-              </div>
+              {[{ label: "Ponedeljak - Petak", time: "10h - 19h" }, { label: "Subota", time: "10h - 19h" }].map((slot, i) => (
+                <div
+                  key={slot.label}
+                  className={`transition-all duration-600 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}
+                  style={{ transitionDelay: `${600 + i * 120}ms` }}
+                >
+                  <p className="font-medium text-white">{slot.label}</p>
+                  <p>{slot.time}</p>
+                </div>
+              ))}
             </div>
           </div>
-          
+
           {/* Right column - Contact Info and Map */}
-          <div 
-            className={`transition-all duration-700 delay-150 ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          <div
+            className={`transition-all duration-[1s] delay-200 ${
+              inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"
             }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
           >
-            {/* KONTAKT heading */}
-            <h3 className="font-heading text-[24px] text-white mb-5 md:text-[28px]">
+            <h3
+              className={`font-heading text-[28px] text-white mb-5 md:text-[32px] lg:text-[36px] transition-all duration-700 delay-400 ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
+            >
               KONTAKT
             </h3>
-            
-            {/* Contact items with icons */}
+            <span className={`block h-[3px] w-12 bg-[#D4AF37] mb-5 origin-left transition-transform duration-700 delay-[550ms] ${inView ? "scale-x-100" : "scale-x-0"}`} />
+
+            {/* Contact items staggered */}
             <div className="space-y-3 mb-8">
-              <a 
-                href="tel:+38165345678" 
-                className="flex items-center gap-3 text-[14px] text-white/80 hover:text-white transition-colors md:text-[15px]"
+              {contactItems.map((item, i) => (
+                <a
+                  key={item.text}
+                  href={item.href}
+                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  className={`flex items-center gap-3 text-[14px] text-white/80 hover:text-white transition-all duration-500 md:text-[15px] group ${
+                    inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6"
+                  }`}
+                  style={{ transitionDelay: `${600 + i * 120}ms` }}
+                >
+                  <item.icon className="h-4 w-4 text-white/60 transition-transform duration-300 group-hover:scale-110" />
+                  <span>{item.text}</span>
+                </a>
+              ))}
+              <div
+                className={`flex items-center gap-3 text-[14px] text-white/80 md:text-[15px] transition-all duration-500 ${
+                  inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6"
+                }`}
+                style={{ transitionDelay: "960ms" }}
               >
-                <PhoneIcon className="h-4 w-4 text-white/60" />
-                <span>+381 65 345 678</span>
-              </a>
-              
-              <a 
-                href="mailto:rsbarbershop@gmail.com" 
-                className="flex items-center gap-3 text-[14px] text-white/80 hover:text-white transition-colors md:text-[15px]"
-              >
-                <EmailIcon className="h-4 w-4 text-white/60" />
-                <span>rsbarbershop@gmail.com</span>
-              </a>
-              
-              <a 
-                href="https://instagram.com/rs_barbershop" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-[14px] text-white/80 hover:text-white transition-colors md:text-[15px]"
-              >
-                <InstagramIcon className="h-4 w-4 text-white/60" />
-                <span>@rs_barbershop</span>
-              </a>
-              
-              <div className="flex items-center gap-3 text-[14px] text-white/80 md:text-[15px]">
                 <MapPinIcon className="h-4 w-4 text-white/60" />
                 <span>Svetosavska 134, Kać</span>
               </div>
             </div>
-            
-            {/* Google Maps */}
-            <div className="relative aspect-[4/3] overflow-hidden bg-[#333]">
+
+            {/* Map with reveal */}
+            <div
+              className={`relative aspect-[4/3] overflow-hidden bg-[#333] transition-all duration-800 delay-500 ${
+                inView ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+              style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
+            >
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2805.4!2d19.93!3d45.26!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDXCsDE1JzM2LjAiTiAxOcKwNTUnNDguMCJF!5e0!3m2!1sen!2srs!4v1000000000000!5m2!1sen!2srs"
                 width="100%"

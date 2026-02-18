@@ -33,47 +33,46 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
     <section
       ref={sectionRef}
       id="cenovnik"
-      className="bg-[#f7f7f7] py-20 md:py-28 lg:py-32"
+      className="bg-[#f7f7f7] py-20 md:py-28 lg:py-32 overflow-hidden"
       aria-labelledby="prices-heading"
     >
       <div className="mx-auto max-w-xl px-5 md:px-8">
-        {/* Heading - centered */}
-        <div 
-          className={`text-center mb-10 md:mb-12 transition-all duration-700 ${
+        {/* Heading */}
+        <div
+          className={`text-center mb-10 md:mb-12 transition-all duration-[0.9s] ${
             inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
+          style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
         >
           <h2
             id="prices-heading"
-            className="font-heading text-[42px] text-[#1a1a1a] md:text-[48px]"
+            className="font-heading text-[48px] text-[#1a1a1a] md:text-[56px] lg:text-[64px]"
           >
             CENOVNIK
           </h2>
+          <span className={`block h-[3px] w-16 bg-[#D4AF37] mt-3 mx-auto origin-center transition-transform duration-700 delay-300 ${inView ? "scale-x-100" : "scale-x-0"}`} />
         </div>
-        
-        {/* Price list with dotted leaders */}
-        <div 
-          className={`space-y-3 transition-all duration-700 delay-150 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          {prices.map((item) => (
-            <div 
-              key={item.name} 
-              className="price-row"
+
+        {/* Price rows - staggered line-by-line reveal */}
+        <div className="space-y-3">
+          {prices.map((item, i) => (
+            <div
+              key={item.name}
+              className={`price-row transition-all duration-600 ${
+                inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+              }`}
+              style={{
+                transitionDelay: `${300 + i * 100}ms`,
+                transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
             >
-              {/* Service name with optional duration */}
               <span className="text-[13px] text-[#1a1a1a] whitespace-nowrap md:text-[14px]">
                 {item.name}
                 {item.duration && (
                   <span className="text-[#666666]"> ({item.duration})</span>
                 )}
               </span>
-              
-              {/* Dotted leader */}
               <span className="price-dots" />
-              
-              {/* Price */}
               <span className="text-[13px] text-[#1a1a1a] whitespace-nowrap md:text-[14px]">
                 {item.price}
               </span>

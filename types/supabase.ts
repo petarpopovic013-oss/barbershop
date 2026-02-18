@@ -6,7 +6,6 @@
 export type Service = {
   id: number; // bigint
   service_name: string;
-  duration_minutes: number;
   price_rsd: number; // bigint
   active: boolean;
   created_at?: string;
@@ -30,7 +29,8 @@ export type Customer = {
 export type Reservation = {
   id: number; // bigint
   barber_id: number; // bigint FK to Barbers
-  service_id: number; // bigint FK to Services
+  service_id: number | null; // bigint FK to Services (legacy / first service)
+  service_ids: number[] | null; // array of service IDs
   customer_id?: number; // bigint FK to Customer (optional)
   customer_name: string;
   customer_phone: string;
@@ -42,7 +42,7 @@ export type Reservation = {
 
 export type CreateReservationPayload = {
   barberId: number;
-  serviceId: number;
+  serviceIds: number[];
   customerName: string;
   customerPhone: string;
   customerEmail?: string;

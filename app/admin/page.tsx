@@ -4,11 +4,12 @@ import { AdminShell } from "@/components/AdminShell";
 import { AdminCalendar } from "@/components/AdminCalendar";
 
 type Barber = { id: number; name: string };
-type Service = { id: number; service_name: string; duration_minutes: number; price_rsd: number };
+type Service = { id: number; service_name: string; price_rsd: number };
 type Reservation = {
   id: number;
   barber_id: number;
-  service_id: number;
+  service_id: number | null;
+  service_ids: number[] | null;
   customer_name: string;
   customer_phone: string;
   customer_email?: string;
@@ -34,7 +35,7 @@ async function fetchServices(): Promise<Service[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("Services")
-    .select("id, service_name, duration_minutes, price_rsd");
+    .select("id, service_name, price_rsd");
   if (error) {
     console.error("Error fetching services:", error);
     return [];
@@ -51,7 +52,7 @@ async function fetchReservations(
   const supabase = createSupabaseServerClient();
   let query = supabase
     .from("Reservations")
-    .select("id, barber_id, service_id, customer_name, customer_phone, customer_email, start_time, end_time")
+    .select("id, barber_id, service_id, service_ids, customer_name, customer_phone, customer_email, start_time, end_time")
     .gte("start_time", dayStart)
     .lte("start_time", dayEnd);
   if (barberId && barberId !== "all") {
