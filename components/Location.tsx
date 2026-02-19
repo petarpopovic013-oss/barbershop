@@ -154,7 +154,7 @@ export function Location() {
                 style={{ transitionDelay: "960ms" }}
               >
                 <MapPinIcon className="h-4 w-4 text-white/60" />
-                <span>Svetosavska 34, Kać</span>
+                <span>Svetosavska 134, Kać</span>
               </div>
             </div>
 
@@ -166,7 +166,7 @@ export function Location() {
               style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1387.279195449688!2d19.933959067937383!3d45.302026781028665!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x475b1992e0a753df%3A0x9bee1af67f6a2792!2sSvetosavska%2034%2C%20Ka%C4%87!5e1!3m2!1sen!2srs!4v1771517165274!5m2!1sen!2srs"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4665.973904363768!2d19.91937107736164!3d45.305167544033985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f20!3m3!1m2!1s0x475b19ef6e0cc395%3A0xad2bb7d4340a3bf7!2sSvetosavska%20134%2C%20Ka%C4%87!5e1!3m2!1sen!2srs!4v1771517322761!5m2!1sen!2srs"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
