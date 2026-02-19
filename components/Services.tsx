@@ -53,9 +53,9 @@ export function Services({ onBookClick }: { onBookClick?: () => void }) {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
 
-          {/* Left - Text: slides in from left */}
+          {/* Left - Text: slides in from left, centered on mobile */}
           <div
-            className={`transition-all duration-[1s] ${
+            className={`flex flex-col items-center text-center lg:items-start lg:text-left transition-all duration-[1s] ${
               inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"
             }`}
             style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
@@ -68,7 +68,7 @@ export function Services({ onBookClick }: { onBookClick?: () => void }) {
             </h2>
 
             {/* Accent underline grows in */}
-            <span className={`block h-[3px] w-16 bg-[#1a1a1a] mt-3 origin-left transition-transform duration-700 delay-300 ${inView ? "scale-x-100" : "scale-x-0"}`} />
+            <span className={`block h-[3px] w-16 bg-[#1a1a1a] mt-3 origin-center lg:origin-left transition-transform duration-700 delay-300 ${inView ? "scale-x-100" : "scale-x-0"}`} />
 
             <p
               className={`mt-5 text-[16px] font-medium text-[#1a1a1a] md:text-[17px] transition-all duration-700 delay-300 ${
@@ -97,8 +97,8 @@ export function Services({ onBookClick }: { onBookClick?: () => void }) {
             </button>
           </div>
 
-          {/* Right - 2x2 Service grid with staggered card reveals */}
-          <div className="grid grid-cols-2 border border-[#e5e5e5]">
+          {/* Right - 2x2 Service grid with staggered card reveals, centered on mobile */}
+          <div className="grid grid-cols-2 border border-[#e5e5e5] w-full max-w-md mx-auto lg:max-w-none lg:mx-0">
             {services.map((service, index) => (
               <div
                 key={service.title}

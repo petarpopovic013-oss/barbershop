@@ -8,10 +8,11 @@ type Props = {
   barbers: Barber[];
   initialAvailability: BarberAvailability[];
   initialBarberId: number;
-  initialWeekStart: string; // YYYY-MM-DD
+  initialWeekStart: string;
 };
 
 const SERBIAN_DAYS = ["Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"];
+const SERBIAN_DAYS_SHORT = ["Pon", "Uto", "Sre", "Čet", "Pet", "Sub"];
 
 function formatSerbianDate(dateStr: string): string {
   const date = new Date(dateStr + "T12:00:00");
@@ -19,6 +20,13 @@ function formatSerbianDate(dateStr: string): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}.${month}.${year}`;
+}
+
+function formatShortDate(dateStr: string): string {
+  const date = new Date(dateStr + "T12:00:00");
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}`;
 }
 
 function getMonday(date: Date): Date {
@@ -127,10 +135,9 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
     setMessage(null);
 
     try {
-      // Step 1: Find days that should be UNAVAILABLE (save these)
       const unavailableDays = weekDates.filter((date) => {
         const isAvailable = availability.get(date) ?? true;
-        return !isAvailable; // Only include unavailable days
+        return !isAvailable;
       });
 
       const unavailableRecords: BarberAvailabilityInput[] = unavailableDays.map((date) => ({
@@ -141,16 +148,14 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
         working_hours_end: "17:00:00",
       }));
 
-      // Step 2: Find days that should be AVAILABLE (delete these records if they exist)
       const availableDays = weekDates.filter((date) => {
         const isAvailable = availability.get(date) ?? true;
-        return isAvailable; // Only include available days
+        return isAvailable;
       });
 
       console.log("Unavailable days to save:", unavailableRecords);
       console.log("Available days to delete records for:", availableDays);
 
-      // Save unavailable days
       if (unavailableRecords.length > 0) {
         const upsertResult = await upsertAvailability(unavailableRecords);
         if (!upsertResult.ok) {
@@ -161,12 +166,10 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
         }
       }
 
-      // Delete records for available days (to revert back to default available state)
       if (availableDays.length > 0) {
         const deleteResult = await deleteAvailability(selectedBarberId, availableDays);
         if (!deleteResult.ok) {
           console.warn("Failed to delete availability records:", deleteResult);
-          // Don't show error to user, as the main operation succeeded
         }
       }
 
@@ -184,37 +187,39 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
   };
 
   return (
-    <div className="admin-availability mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header - Premium design */}
-      <header className="mb-12 flex flex-wrap items-center justify-between gap-6 border-b border-white/10 pb-8">
-        <div>
-          <h1 className="font-heading text-[42px] text-white md:text-[48px] lg:text-[56px]">
-            DOSTUPNOST BERBERA
-          </h1>
-          <span className="mt-3 block h-[3px] w-16 bg-[#ffffff] origin-left" />
-          <p className="mt-4 text-[15px] text-white/60 md:text-[16px]">
-            Upravljanje radnim danima i dostupnošću
-          </p>
+    <div className="admin-availability mx-auto max-w-7xl px-3 py-6 sm:px-6 lg:px-8">
+      {/* Header */}
+      <header className="mb-8 border-b border-white/10 pb-6 sm:mb-12 sm:pb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <h1 className="font-heading text-[28px] text-white sm:text-[42px] md:text-[48px] lg:text-[56px]">
+              DOSTUPNOST
+            </h1>
+            <span className="mt-2 block h-[3px] w-12 bg-white/70 sm:mt-3 sm:w-16" />
+            <p className="mt-3 text-[13px] text-white/60 sm:mt-4 sm:text-[15px]">
+              Upravljanje radnim danima i dostupnošću
+            </p>
+          </div>
+          <a href="/admin"
+            className="flex w-fit items-center gap-1.5 min-h-[40px] rounded-full border-2 border-white/20 bg-transparent px-4 py-2 text-[10px] font-bold tracking-[0.12em] uppercase text-white transition-all duration-300 hover:border-[#525252] hover:bg-[#404040] sm:min-h-[44px] sm:px-6 sm:py-2.5 sm:text-[11px] sm:tracking-[0.15em] sm:gap-2 focus-ring">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="sm:w-4 sm:h-4">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Nazad
+          </a>
         </div>
-        <a href="/admin"
-          className="flex items-center gap-2 min-h-[44px] rounded-full border-2 border-white/20 bg-transparent px-6 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase text-white transition-all duration-300 hover:border-[#ffffff] hover:bg-[#ffffff] hover:text-[#1a1a1a] focus-ring">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          Nazad
-        </a>
       </header>
 
-      {/* Controls - Premium cards */}
-      <div className="mb-10 space-y-6">
-        <div className="rounded-[20px] border border-white/10 bg-white/3 backdrop-blur-sm p-6">
-          <label className="mb-4 block font-heading text-[13px] uppercase tracking-widest text-[#ffffff]">
+      {/* Controls */}
+      <div className="mb-8 space-y-4 sm:mb-10 sm:space-y-6">
+        <div className="rounded-[16px] border border-white/10 bg-[#1a1a1a] p-4 sm:rounded-[20px] sm:p-6">
+          <label className="mb-3 block font-heading text-[12px] uppercase tracking-widest text-white/80 sm:mb-4 sm:text-[13px]">
             Izaberi berbera
           </label>
           <select
             value={selectedBarberId}
             onChange={(e) => handleBarberChange(Number(e.target.value))}
-            className="w-full min-h-[48px] rounded-full border-2 border-white/20 bg-[#1a1a1a] px-5 py-3 text-sm font-medium text-white transition-all duration-300 focus:border-[#ffffff] focus:outline-none focus:ring-2 focus:ring-[#ffffff]/30"
+            className="w-full min-h-[44px] rounded-full border-2 border-white/20 bg-[#141417] px-4 py-2.5 text-sm font-medium text-white transition-all duration-300 focus:border-[#525252] focus:outline-none focus:ring-2 focus:ring-[#525252]/50 sm:min-h-[48px] sm:px-5 sm:py-3"
           >
             {barbers.map((b) => (
               <option key={b.id} value={b.id}>
@@ -225,63 +230,65 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
         </div>
 
         {/* Week Navigation */}
-        <div className="flex items-center justify-between gap-4 rounded-[20px] border border-white/10 bg-white/3 backdrop-blur-sm p-6">
+        <div className="flex items-center justify-between gap-2 rounded-[16px] border border-white/10 bg-[#1a1a1a] p-3 sm:gap-4 sm:rounded-[20px] sm:p-6">
           <button
             type="button"
             onClick={handlePreviousWeek}
-            className="flex items-center gap-2 min-h-[48px] rounded-full border-2 border-white/20 bg-transparent px-5 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase text-white transition-all duration-300 hover:border-[#ffffff] hover:bg-[#ffffff] hover:text-[#1a1a1a] focus-ring"
+            className="flex items-center gap-1 min-h-[40px] rounded-full border-2 border-white/20 bg-transparent px-3 py-2 text-[10px] font-bold tracking-[0.1em] uppercase text-white transition-all duration-300 hover:border-[#525252] hover:bg-[#404040] sm:min-h-[48px] sm:px-5 sm:py-2.5 sm:text-[11px] sm:tracking-[0.15em] sm:gap-2 focus-ring"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M15 18l-6-6 6-6" />
             </svg>
-            Prethodna
+            <span className="hidden sm:inline">Prethodna</span>
           </button>
 
-          <span className="font-heading text-[14px] uppercase tracking-wider text-[#ffffff]">
-            {formatSerbianDate(weekStart)} - {formatSerbianDate(weekEndDate)}
+          <span className="font-heading text-[11px] uppercase tracking-wider text-white/90 text-center sm:text-[14px]">
+            <span className="hidden sm:inline">{formatSerbianDate(weekStart)} - {formatSerbianDate(weekEndDate)}</span>
+            <span className="sm:hidden">{formatShortDate(weekStart)} - {formatShortDate(weekEndDate)}</span>
           </span>
 
           <button
             type="button"
             onClick={handleNextWeek}
-            className="flex items-center gap-2 min-h-[48px] rounded-full border-2 border-white/20 bg-transparent px-5 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase text-white transition-all duration-300 hover:border-[#ffffff] hover:bg-[#ffffff] hover:text-[#1a1a1a] focus-ring"
+            className="flex items-center gap-1 min-h-[40px] rounded-full border-2 border-white/20 bg-transparent px-3 py-2 text-[10px] font-bold tracking-[0.1em] uppercase text-white transition-all duration-300 hover:border-[#525252] hover:bg-[#404040] sm:min-h-[48px] sm:px-5 sm:py-2.5 sm:text-[11px] sm:tracking-[0.15em] sm:gap-2 focus-ring"
           >
-            Sledeća
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <span className="hidden sm:inline">Sledeća</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Days Grid - Premium cards */}
-      <div className="mb-10 space-y-4">
+      {/* Days Grid */}
+      <div className="mb-8 space-y-3 sm:mb-10 sm:space-y-4">
         {weekDates.map((date, index) => {
           const isAvailable = availability.get(date) ?? true;
           return (
             <div
               key={date}
-              className={`rounded-[20px] border-2 p-6 backdrop-blur-sm transition-all duration-300 ${
+              className={`rounded-[14px] border-2 p-4 transition-all duration-300 sm:rounded-[20px] sm:p-6 ${
                 isAvailable
-                  ? "border-[#ffffff]/50 bg-[#ffffff]/10"
-                  : "border-white/10 bg-white/3"
+                  ? "border-white/30 bg-white/5"
+                  : "border-white/10 bg-white/[0.02]"
               }`}
             >
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-heading text-[16px] uppercase tracking-wider text-white md:text-[18px]">
-                    {SERBIAN_DAYS[index]}
+              <div className="flex items-center justify-between gap-3 sm:gap-4">
+                <div className="min-w-0">
+                  <p className="font-heading text-[14px] uppercase tracking-wider text-white sm:text-[16px] md:text-[18px]">
+                    <span className="sm:hidden">{SERBIAN_DAYS_SHORT[index]}</span>
+                    <span className="hidden sm:inline">{SERBIAN_DAYS[index]}</span>
                   </p>
-                  <p className="mt-1 text-[13px] text-white/60">
+                  <p className="mt-0.5 text-[12px] text-white/60 sm:mt-1 sm:text-[13px]">
                     {formatSerbianDate(date)}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => toggleDay(date)}
-                  className={`min-h-[48px] rounded-full px-6 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase transition-all duration-300 focus-ring ${
+                  className={`shrink-0 min-h-[40px] rounded-full px-4 py-2 text-[10px] font-bold tracking-[0.1em] uppercase transition-all duration-300 sm:min-h-[48px] sm:px-6 sm:py-2.5 sm:text-[11px] sm:tracking-[0.15em] focus-ring ${
                     isAvailable
-                      ? "bg-[#ffffff] text-[#1a1a1a] hover:bg-[#E5E5E5] hover:scale-105"
+                      ? "bg-white/90 text-[#1a1a1a] hover:bg-white"
                       : "border-2 border-white/20 bg-transparent text-white/60 hover:border-white/40 hover:text-white"
                   }`}
                 >
@@ -293,12 +300,12 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
         })}
       </div>
 
-      {/* Actions - Premium buttons */}
-      <div className="flex flex-wrap items-center gap-4">
+      {/* Actions */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <button
           type="button"
           onClick={markAllUnavailable}
-          className="flex items-center gap-2 min-h-[48px] rounded-full border-2 border-white/20 bg-transparent px-6 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase text-white transition-all duration-300 hover:border-white/40 hover:bg-white/10 focus-ring"
+          className="flex items-center justify-center gap-2 min-h-[44px] rounded-full border-2 border-white/20 bg-transparent px-5 py-2.5 text-[10px] font-bold tracking-[0.12em] uppercase text-white transition-all duration-300 hover:border-white/40 hover:bg-white/10 sm:min-h-[48px] sm:px-6 sm:text-[11px] sm:tracking-[0.15em] focus-ring"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -311,7 +318,7 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 min-h-[48px] rounded-full bg-[#ffffff] px-8 py-2.5 text-[11px] font-bold tracking-[0.2em] uppercase text-[#1a1a1a] transition-all duration-300 hover:bg-[#E5E5E5] hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#ffffff] focus:ring-offset-2 focus:ring-offset-[#1a1a1a] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="flex items-center justify-center gap-2 min-h-[44px] rounded-full bg-white/90 px-6 py-2.5 text-[10px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] transition-all duration-300 hover:bg-white sm:min-h-[48px] sm:px-8 sm:text-[11px] sm:tracking-[0.2em] focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#1a1a1a] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? (
             <>
@@ -348,22 +355,23 @@ export function AdminAvailabilityCalendar({ barbers, initialAvailability, initia
         </button>
       </div>
 
-      {/* Message - Premium alert */}
+      {/* Message */}
       {message && (
         <div
-          className={`mt-6 flex items-center gap-3 rounded-[20px] border-2 px-6 py-4 text-sm backdrop-blur-sm ${
+          className={`mt-4 flex items-center gap-3 rounded-[14px] border-2 px-4 py-3 text-[13px] sm:mt-6 sm:rounded-[20px] sm:px-6 sm:py-4 sm:text-sm ${
             message.type === "success"
-              ? "border-[#ffffff]/50 bg-[#ffffff]/10 text-[#ffffff]"
+              ? "border-white/30 bg-white/5 text-white/90"
               : "border-red-500/50 bg-red-500/10 text-red-400"
           }`}
         >
           <svg
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            className="shrink-0 sm:w-5 sm:h-5"
           >
             {message.type === "success" ? (
               <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
