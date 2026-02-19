@@ -85,7 +85,7 @@ export function Location() {
                 src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop"
                 alt="Enterijer barbershopa"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover grayscale transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />

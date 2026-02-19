@@ -43,9 +43,9 @@ export function Hero({
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 text-center">
 
-        {/* Logo - animated reveal */}
+        {/* Logo - animated reveal (smaller on desktop/laptop) */}
         <div
-          className={`relative w-[680px] h-[213px] sm:w-[850px] sm:h-[264px] md:w-[1020px] md:h-[315px] lg:w-[1275px] lg:h-[391px] max-w-[90vw] transition-all duration-[1.2s] cubic-bezier(0.16,1,0.3,1) ${
+          className={`relative w-[680px] h-[213px] sm:w-[723px] sm:h-[224px] md:w-[867px] md:h-[268px] lg:w-[1084px] lg:h-[332px] max-w-[90vw] transition-all duration-[1.2s] cubic-bezier(0.16,1,0.3,1) ${
             loaded
               ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-[0.92] translate-y-5"
@@ -58,15 +58,15 @@ export function Hero({
             fill
             className="object-contain"
             priority
-            sizes="(max-width: 640px) 90vw, (max-width: 768px) 90vw, (max-width: 1024px) 90vw, 1275px"
+            sizes="(max-width: 640px) 90vw, (max-width: 768px) 90vw, (max-width: 1024px) 90vw, 1084px"
           />
         </div>
 
-        {/* CTA Button - slides up after logo */}
+        {/* CTA Button - slides up after logo (15% smaller, closer to logo on phone) */}
         <button
           type="button"
           onClick={onBookClick}
-          className={`mt-[18px] cursor-pointer md:mt-6 font-bold rounded-full px-12 py-6 bg-white border border-white text-[#1a1a1a] text-[15px] tracking-[0.2em] uppercase transition-colors duration-150 hover:bg-[#333333] hover:border-[#333333] hover:text-white ${
+          className={`mt-[12px] cursor-pointer md:mt-5 font-bold rounded-full px-10 py-5 bg-white border border-white text-[#1a1a1a] text-[13px] tracking-[0.2em] uppercase transition-colors duration-150 hover:bg-[#333333] hover:border-[#333333] hover:text-white ${
             loaded
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-8"

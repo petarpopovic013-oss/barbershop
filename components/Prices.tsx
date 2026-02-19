@@ -33,7 +33,7 @@ export function Prices({ onBookClick }: { onBookClick?: () => void }) {
     <section
       ref={sectionRef}
       id="cenovnik"
-      className="bg-[#f7f7f7] py-20 md:py-28 lg:py-32 overflow-hidden"
+      className="bg-[#f7f7f7] py-12 md:py-16 lg:py-20 overflow-hidden"
       aria-labelledby="prices-heading"
     >
       <div className="mx-auto max-w-xl px-5 md:px-8">

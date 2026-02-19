@@ -65,7 +65,7 @@ export function Gallery() {
               src={image.src}
               alt={image.alt}
               fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              className="object-cover grayscale transition-transform duration-700 ease-out group-hover:scale-110"
               sizes="(max-width: 640px) 50vw, 33vw"
               loading="lazy"
             />

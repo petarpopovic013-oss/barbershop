@@ -44,7 +44,7 @@ export function Barbers() {
     <section
       ref={sectionRef}
       id="tim"
-      className="bg-[#1a1a1a] py-20 md:py-28 lg:py-32 overflow-hidden"
+      className="bg-[#1a1a1a] py-8 md:py-11 lg:py-14 overflow-hidden"
       aria-labelledby="team-heading"
     >
       <div className="mx-auto max-w-6xl px-5 md:px-8">
@@ -59,12 +59,12 @@ export function Barbers() {
             }`}
             style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
           >
-            <div className="relative aspect-[3/4] overflow-hidden rounded-lg mx-auto max-w-[380px] lg:max-w-none group">
+            <div className="relative aspect-square overflow-hidden rounded-lg mx-auto max-w-[340px] lg:max-w-none group">
               <Image
-                src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=800&fit=crop"
+                src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=600&fit=crop"
                 alt="Profesionalni berber na poslu"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover grayscale transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />

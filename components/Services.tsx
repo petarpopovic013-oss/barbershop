@@ -119,7 +119,7 @@ export function Services({ onBookClick }: { onBookClick?: () => void }) {
                     src={service.image}
                     alt=""
                     fill
-                    className="object-contain"
+                    className="object-contain grayscale"
                     sizes="(max-width: 768px) 54px, 68px"
                   />
                 </div>
