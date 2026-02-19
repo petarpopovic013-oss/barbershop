@@ -45,7 +45,7 @@ export function Hero({
 
         {/* Logo - animated reveal (smaller on desktop/laptop) */}
         <div
-          className={`relative w-[680px] h-[213px] sm:w-[723px] sm:h-[224px] md:w-[867px] md:h-[268px] lg:w-[1084px] lg:h-[332px] max-w-[90vw] transition-all duration-[1.2s] cubic-bezier(0.16,1,0.3,1) ${
+          className={`relative w-[714px] h-[224px] sm:w-[569px] sm:h-[176px] md:w-[683px] md:h-[211px] lg:w-[854px] lg:h-[261px] max-w-[90vw] transition-all duration-[1.2s] cubic-bezier(0.16,1,0.3,1) ${
             loaded
               ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-[0.92] translate-y-5"
@@ -58,7 +58,7 @@ export function Hero({
             fill
             className="object-contain"
             priority
-            sizes="(max-width: 640px) 90vw, (max-width: 768px) 90vw, (max-width: 1024px) 90vw, 1084px"
+            sizes="(max-width: 640px) 90vw, (max-width: 768px) 90vw, (max-width: 1024px) 90vw, 854px"
           />
         </div>
 
