@@ -77,7 +77,7 @@ export function Header({ onBookClick }: { onBookClick: () => void }) {
           href="/"
           className="text-[11px] font-medium tracking-[0.15em] text-white"
         >
-          MENU
+          MENI
         </Link>
 
         <button
