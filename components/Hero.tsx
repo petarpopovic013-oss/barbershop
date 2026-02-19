@@ -32,7 +32,7 @@ export function Hero({
         muted
         loop
         playsInline
-        className={`absolute inset-0 h-full w-full object-cover grayscale transition-opacity duration-[2s] ${loaded ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 h-full w-full object-cover object-[70%_center] sm:object-center grayscale transition-opacity duration-[2s] ${loaded ? "opacity-100" : "opacity-0"}`}
       >
         <source src="/hero.mp4" type="video/mp4" />
       </video>
