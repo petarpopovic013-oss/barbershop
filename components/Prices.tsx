@@ -10,7 +10,7 @@ const prices = [
   { name: "OBIČNO ŠIŠANJE + BRADA", duration: null, price: "1.500" },
   { name: "BRIJANJE GLAVE", duration: null, price: "1.400" },
   { name: "KLASIČNO BRIJANJE", duration: null, price: "1.200" },
-  { name: "PRANJE KOSE", duration: null, price: "700" },
+  { name: "PRANJE KOSE", duration: null, price: "200" },
 ];
 
 export function Prices({ onBookClick }: { onBookClick?: () => void }) {
