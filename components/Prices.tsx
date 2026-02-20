@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const prices = [
-  { name: "ŠIŠANJE FADE", duration: "30 min.", price: "1.400" },
-  { name: "KLASIČNO ŠIŠANJE", duration: "20 min.", price: "1.200" },
+  { name: "FADE ŠIŠANJE", duration: null, price: "1.400" },
+  { name: "OBIČNO ŠIŠANJE", duration: null, price: "1.200" },
   { name: "BRADA", duration: null, price: "700" },
-  { name: "ŠIŠANJE + BRADA", duration: null, price: "1.700" },
+  { name: "FADE ŠIŠANJE + BRADA", duration: null, price: "1.700" },
+  { name: "OBIČNO ŠIŠANJE + BRADA", duration: null, price: "1.500" },
   { name: "BRIJANJE GLAVE", duration: null, price: "1.400" },
   { name: "KLASIČNO BRIJANJE", duration: null, price: "1.200" },
   { name: "PRANJE KOSE", duration: null, price: "700" },
