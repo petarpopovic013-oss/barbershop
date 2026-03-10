@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const montserrat = Montserrat({
   subsets: ["latin", "latin-ext"],
@@ -41,6 +42,7 @@ export default function RootLayout({
     <html lang="sr" className={montserrat.variable}>
       <body className="font-body antialiased">
         {children}
+        <SpeedInsights/>
       </body>
     </html>
   );
